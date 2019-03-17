@@ -100,29 +100,29 @@ func TestPrometheusRecorder(t *testing.T) {
 				`batman_http_request_duration_seconds_count{code="200",handler="test1",method="GET"} 2`,
 			},
 		},
-				{
+		{
 			name: "Using custom buckets in the configuration should measure with custom buckets.",
 			config: libprometheus.Config{
-				Prefix: "batman",
+				DurationBuckets: []float64{1, 2, 10, 20, 50, 200, 500, 1000, 2000, 5000, 10000},
 			},
 			recordMetrics: func(r metrics.Recorder) {
-				r.ObserveHTTPRequestDuration("test1", 5*time.Second, http.MethodGet, "200")
-				r.ObserveHTTPRequestDuration("test1", 175*time.Millisecond, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration("test1", 75*time.Minute, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration("test1", 200*time.Hour, http.MethodGet, "200")
 			},
 			expMetrics: []string{
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.005"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.01"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.025"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.05"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.1"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.25"} 1`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.5"} 1`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="1"} 1`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="2.5"} 1`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="5"} 2`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="10"} 2`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="+Inf"} 2`,
-				`batman_http_request_duration_seconds_count{code="200",handler="test1",method="GET"} 2`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="1"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="2"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="10"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="20"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="50"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="200"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="500"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="1000"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="2000"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="5000"} 1`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="10000"} 1`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="+Inf"} 2`,
+				`http_request_duration_seconds_count{code="200",handler="test1",method="GET"} 2`,
 			},
 		},
 	}
