@@ -1,3 +1,8 @@
 ## 0.x.x / 2019-xx-xx
 
+* [FEATURE] Add option to group by status codes.
+* [FEATURE] Add predefined handler label.
+* [FEATURE] Add URL infered handler label.
+* [FEATURE] Add middleware.
+* [FEATURE] Add HTTP latency requests.
 * [FEATURE] Add Prometheus recorder.

@@ -3,6 +3,7 @@ UNIT_TEST_CMD := go test `go list ./... | grep -v vendor` -race -v
 INTEGRATION_TEST_CMD := go test `go list ./... | grep -v vendor`  -race -v -tags='integration'
 BENCHMARK_CMD := go test -benchmem -bench=.
 DEPS_CMD := GO111MODULE=on go mod tidy && GO111MODULE=on go mod vendor
+MOCKS_CMD := go generate ./internal/mocks
 
 .PHONY: default
 default: test
@@ -26,6 +27,10 @@ ci: test
 .PHONY: deps
 deps:
 	$(DEPS_CMD)
+
+.PHONY: mocks
+mocks:
+	$(MOCKS_CMD)
 
 .PHONY: godoc
 godoc: 

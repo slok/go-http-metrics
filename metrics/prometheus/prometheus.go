@@ -15,7 +15,7 @@ type Config struct {
 	// DurationBuckets are the buckets used by Prometheus for the HTTP request duration metrics,
 	// by default uses Prometheus default buckets (from 5ms to 10s).
 	DurationBuckets []float64
-	// Registry is the registry that ill be used by the recorder to store the metrics,
+	// Registry is the registry that will be used by the recorder to store the metrics,
 	// if the default registry is not used then it will use the default one.
 	Registry prometheus.Registerer
 }
