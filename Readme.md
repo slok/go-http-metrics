@@ -1,4 +1,4 @@
-# go-http-middleware [![Build Status][travis-image]][travis-url] [![Go Report Card][goreport-image]][goreport-url] [![GoDoc][godoc-image]][godoc-url]
+# go-http-metrics [![Build Status][travis-image]][travis-url] [![Go Report Card][goreport-image]][goreport-url] [![GoDoc][godoc-image]][godoc-url]
 
 go-http-metrics knows how to measure http metrics in different metric formats, it comes with a middleware that will measure metrics of a Go net/http handler. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
 
