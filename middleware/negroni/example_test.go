@@ -26,7 +26,7 @@ func Example_negroniMiddleware() {
 
 	// Create our middleware.
 	mdlw := middleware.New(middleware.Config{
-		Recorder: metrics.New(metrics.Config{}),
+		Recorder: metrics.NewRecorder(metrics.Config{}),
 	})
 	// Add the middleware to negroni.
 	n.Use(negronimiddleware.Handler("", mdlw))
