@@ -1,6 +1,5 @@
 // Package httprouter is a helper package to get a httprouter compatible
-// handler/middleware from the standatd net/http Middleware factory
-// (from github.com/slok/go-prometheus-middleware).
+// handler/middleware from the standatd net/http Middleware factory.
 package httprouter
 
 import (
