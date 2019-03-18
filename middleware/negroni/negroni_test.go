@@ -56,11 +56,8 @@ func TestMiddlewareIntegration(t *testing.T) {
 			n.UseHandler(getTestHandler(test.statusCode))
 
 			// Make the request.
-			test.config.Recorder = mr
-			m := middleware.New(test.config)
-			h := m.Handler(test.handlerID, n)
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, test.req)
+			n.ServeHTTP(resp, test.req)
 
 			// Check.
 			mr.AssertExpectations(t)
