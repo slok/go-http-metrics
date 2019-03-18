@@ -1,5 +1,6 @@
 ## 0.x.x / 2019-xx-xx
 
+* [FEATURE] Add gorestful compatible middleware.
 * [FEATURE] Add httprouter compatible middleware.
 * [FEATURE] Add Negroni compatible middleware.
 * [FEATURE] Add option to group by status codes.
