@@ -1,21 +1,21 @@
-package negroni_test
+package httprouter_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/urfave/negroni"
 
 	mmetrics "github.com/slok/go-http-metrics/internal/mocks/metrics"
 	"github.com/slok/go-http-metrics/middleware"
-	negronimiddleware "github.com/slok/go-http-metrics/middleware/negroni"
+	httproutermiddleware "github.com/slok/go-http-metrics/middleware/httprouter"
 )
 
-func getTestHandler(statusCode int) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func getTestHandler(statusCode int) httprouter.Handle {
+	return httprouter.Handle(func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		w.WriteHeader(statusCode)
 	})
 }
@@ -49,15 +49,14 @@ func TestMiddlewareIntegration(t *testing.T) {
 			mr := &mmetrics.Recorder{}
 			mr.On("ObserveHTTPRequestDuration", test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode)
 
-			// Create our negroni instance with the middleware.
+			// Create our instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
-			n := negroni.Classic()
-			n.Use(negronimiddleware.Handler("", mdlw))
-			n.UseHandler(getTestHandler(test.statusCode))
+			r := httprouter.New()
+			r.POST("/test", httproutermiddleware.Handler("", getTestHandler(test.statusCode), mdlw))
 
 			// Make the request.
 			resp := httptest.NewRecorder()
-			n.ServeHTTP(resp, test.req)
+			r.ServeHTTP(resp, test.req)
 
 			// Check.
 			mr.AssertExpectations(t)
