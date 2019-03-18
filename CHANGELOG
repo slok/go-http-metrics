@@ -1,4 +1,4 @@
-## 0.x.x / 2019-xx-xx
+## 0.1.0 / 2019-03-18
 
 * [FEATURE] Add gorestful compatible middleware.
 * [FEATURE] Add httprouter compatible middleware.
