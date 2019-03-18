@@ -22,7 +22,7 @@ const (
 func main() {
 	// Create our middleware.
 	mdlw := middleware.New(middleware.Config{
-		Recorder: metrics.New(metrics.Config{}),
+		Recorder: metrics.NewRecorder(metrics.Config{}),
 	})
 
 	// Create our handlers.

@@ -133,7 +133,7 @@ func TestPrometheusRecorder(t *testing.T) {
 
 			reg := prometheus.NewRegistry()
 			test.config.Registry = reg
-			mrecorder := libprometheus.New(test.config)
+			mrecorder := libprometheus.NewRecorder(test.config)
 			test.recordMetrics(mrecorder)
 
 			// Get the metrics handler and serve.

@@ -17,7 +17,7 @@ import (
 func Example_gorestfulMiddleware() {
 	// Create our middleware factory with the default settings.
 	mdlw := middleware.New(middleware.Config{
-		Recorder: metrics.New(metrics.Config{}),
+		Recorder: metrics.NewRecorder(metrics.Config{}),
 	})
 
 	// Create our gorestful instance.

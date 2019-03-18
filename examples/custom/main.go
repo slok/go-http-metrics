@@ -30,7 +30,7 @@ func main() {
 	reg := prometheus.NewRegistry()
 
 	// Create our middleware.
-	recorder := metrics.New(metrics.Config{
+	recorder := metrics.NewRecorder(metrics.Config{
 		Registry:        reg,
 		Prefix:          "exampleapp",
 		DurationBuckets: []float64{1, 2.5, 5, 10, 20, 40, 80, 160, 320, 640},

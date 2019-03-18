@@ -36,9 +36,9 @@ type recorder struct {
 	cfg Config
 }
 
-// New returns a new metrics recorder that implements the recorder
+// NewRecorder returns a new metrics recorder that implements the recorder
 // using Prometheus as the backend.
-func New(cfg Config) metrics.Recorder {
+func NewRecorder(cfg Config) metrics.Recorder {
 	cfg.defaults()
 
 	r := &recorder{

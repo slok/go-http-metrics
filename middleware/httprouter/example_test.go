@@ -28,7 +28,7 @@ func Example_httprouterMiddlewareByHandler() {
 
 	// Create our middleware factory with the default settings.
 	mdlw := middleware.New(middleware.Config{
-		Recorder: metrics.New(metrics.Config{}),
+		Recorder: metrics.NewRecorder(metrics.Config{}),
 	})
 	// Add the middleware.
 	r.GET("/test/:id", httproutermiddleware.Handler("/test/:id", myHandler, mdlw))
@@ -60,7 +60,7 @@ func Example_httprouterMiddlewareOnRouter() {
 
 	// Create our middleware factory with the default settings.
 	mdlw := middleware.New(middleware.Config{
-		Recorder: metrics.New(metrics.Config{}),
+		Recorder: metrics.NewRecorder(metrics.Config{}),
 	})
 
 	r.GET("/test/:id", myHandler)
