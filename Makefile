@@ -1,7 +1,7 @@
 
 UNIT_TEST_CMD := go test `go list ./... | grep -v vendor` -race -v
 INTEGRATION_TEST_CMD := go test `go list ./... | grep -v vendor`  -race -v -tags='integration'
-BENCHMARK_CMD := go test -benchmem -bench=.
+BENCHMARK_CMD := go test `go list ./... | grep -v vendor` -benchmem -bench=.
 DEPS_CMD := GO111MODULE=on go mod tidy && GO111MODULE=on go mod vendor
 MOCKS_CMD := go generate ./internal/mocks
 
