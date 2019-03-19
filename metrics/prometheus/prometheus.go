@@ -18,6 +18,12 @@ type Config struct {
 	// Registry is the registry that will be used by the recorder to store the metrics,
 	// if the default registry is not used then it will use the default one.
 	Registry prometheus.Registerer
+	// HandlerIDLabel is the name that will be set to the handler ID label, by default is `handler`.
+	HandlerIDLabel string
+	// StatusCodeLabel is the name that will be set to the status code label, by default is `code`.
+	StatusCodeLabel string
+	// MethodLabel is the name that will be set to the method label, by default is `method`.
+	MethodLabel string
 }
 
 func (c *Config) defaults() {
@@ -27,6 +33,18 @@ func (c *Config) defaults() {
 
 	if c.Registry == nil {
 		c.Registry = prometheus.DefaultRegisterer
+	}
+
+	if c.HandlerIDLabel == "" {
+		c.HandlerIDLabel = "handler"
+	}
+
+	if c.StatusCodeLabel == "" {
+		c.StatusCodeLabel = "code"
+	}
+
+	if c.MethodLabel == "" {
+		c.MethodLabel = "method"
 	}
 }
 
@@ -48,7 +66,7 @@ func NewRecorder(cfg Config) metrics.Recorder {
 			Name:      "request_duration_seconds",
 			Help:      "The latency of the HTTP requests.",
 			Buckets:   cfg.DurationBuckets,
-		}, []string{"handler", "method", "code"}),
+		}, []string{cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
 
 		cfg: cfg,
 	}
