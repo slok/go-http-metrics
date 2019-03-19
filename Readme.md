@@ -139,6 +139,10 @@ DurationBuckets are the buckets used for the request duration histogram metric, 
 
 The Prometheus registry to use, by default it will use Prometheus global registry (the default one on Prometheus library).
 
+#### Label names
+
+The label names of the Prometheus metrics can be configured using `HandlerIDLabel`, `StatusCodeLabel`, `MethodLabel`...
+
 ## Benchmarks
 
 ```text

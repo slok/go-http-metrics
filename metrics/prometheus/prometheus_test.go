@@ -125,6 +125,33 @@ func TestPrometheusRecorder(t *testing.T) {
 				`http_request_duration_seconds_count{code="200",handler="test1",method="GET"} 2`,
 			},
 		},
+		{
+			name: "Using a custom labels in the configuration should measure with those labels.",
+			config: libprometheus.Config{
+				HandlerIDLabel:  "route_id",
+				StatusCodeLabel: "status_code",
+				MethodLabel:     "http_method",
+			},
+			recordMetrics: func(r metrics.Recorder) {
+				r.ObserveHTTPRequestDuration("test1", 5*time.Second, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration("test1", 175*time.Millisecond, http.MethodGet, "200")
+			},
+			expMetrics: []string{
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="0.005"} 0`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="0.01"} 0`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="0.025"} 0`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="0.05"} 0`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="0.1"} 0`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="0.25"} 1`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="0.5"} 1`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="1"} 1`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="2.5"} 1`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="5"} 2`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="10"} 2`,
+				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="+Inf"} 2`,
+				`http_request_duration_seconds_count{http_method="GET",route_id="test1",status_code="200"} 2`,
+			},
+		},
 	}
 
 	for _, test := range tests {
