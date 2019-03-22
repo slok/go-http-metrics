@@ -15,6 +15,9 @@ type Config struct {
 	// DurationBuckets are the buckets used by Prometheus for the HTTP request duration metrics,
 	// by default uses Prometheus default buckets (from 5ms to 10s).
 	DurationBuckets []float64
+	// SizeBuckets are the buckets used by Prometheus for the HTTP response size metrics,
+	// by default uses a exponential buckets from 100B to 1GB.
+	SizeBuckets []float64
 	// Registry is the registry that will be used by the recorder to store the metrics,
 	// if the default registry is not used then it will use the default one.
 	Registry prometheus.Registerer
@@ -29,6 +32,10 @@ type Config struct {
 func (c *Config) defaults() {
 	if len(c.DurationBuckets) == 0 {
 		c.DurationBuckets = prometheus.DefBuckets
+	}
+
+	if len(c.SizeBuckets) == 0 {
+		c.SizeBuckets = prometheus.ExponentialBuckets(100, 10, 8)
 	}
 
 	if c.Registry == nil {
@@ -49,7 +56,8 @@ func (c *Config) defaults() {
 }
 
 type recorder struct {
-	httpRequestHistogram *prometheus.HistogramVec
+	httpRequestDurHistogram   *prometheus.HistogramVec
+	httpResponseSizeHistogram *prometheus.HistogramVec
 
 	cfg Config
 }
@@ -60,12 +68,19 @@ func NewRecorder(cfg Config) metrics.Recorder {
 	cfg.defaults()
 
 	r := &recorder{
-		httpRequestHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		httpRequestDurHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: cfg.Prefix,
 			Subsystem: "http",
 			Name:      "request_duration_seconds",
 			Help:      "The latency of the HTTP requests.",
 			Buckets:   cfg.DurationBuckets,
+		}, []string{cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		httpResponseSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Namespace: cfg.Prefix,
+			Subsystem: "http",
+			Name:      "response_size_bytes",
+			Help:      "The size of the HTTP responses.",
+			Buckets:   cfg.SizeBuckets,
 		}, []string{cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
 
 		cfg: cfg,
@@ -77,9 +92,16 @@ func NewRecorder(cfg Config) metrics.Recorder {
 }
 
 func (r recorder) registerMetrics() {
-	r.cfg.Registry.MustRegister(r.httpRequestHistogram)
+	r.cfg.Registry.MustRegister(
+		r.httpRequestDurHistogram,
+		r.httpResponseSizeHistogram,
+	)
 }
 
 func (r recorder) ObserveHTTPRequestDuration(id string, duration time.Duration, method, code string) {
-	r.httpRequestHistogram.WithLabelValues(id, method, code).Observe(duration.Seconds())
+	r.httpRequestDurHistogram.WithLabelValues(id, method, code).Observe(duration.Seconds())
+}
+
+func (r recorder) ObserveHTTPResponseSize(id string, sizeBytes int64, method, code string) {
+	r.httpResponseSizeHistogram.WithLabelValues(id, method, code).Observe(float64(sizeBytes))
 }
