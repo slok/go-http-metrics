@@ -23,6 +23,9 @@ type Config struct {
 	// status code because there are already aggregated in the metric.
 	// By default will be false.
 	GroupedStatus bool
+	// DisableMeasureSize will disable the recording metrics about the response size,
+	// by default measuring size is enabled (`DisableMeasureSize` is false).
+	DisableMeasureSize bool
 }
 
 func (c *Config) validate() {
@@ -94,6 +97,12 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 			}
 
 			m.cfg.Recorder.ObserveHTTPRequestDuration(hid, duration, r.Method, code)
+
+			// Measure size of response if required.
+			if !m.cfg.DisableMeasureSize {
+				m.cfg.Recorder.ObserveHTTPResponseSize(hid, int64(wi.bytesWritten), r.Method, code)
+			}
+
 		}()
 
 		h.ServeHTTP(wi, r)
@@ -104,10 +113,16 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 // ResponseWriter.
 type responseWriterInterceptor struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode   int
+	bytesWritten int
 }
 
 func (w *responseWriterInterceptor) WriteHeader(statusCode int) {
 	w.statusCode = statusCode
 	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (w *responseWriterInterceptor) Write(p []byte) (int, error) {
+	w.bytesWritten += len(p)
+	return w.ResponseWriter.Write(p)
 }

@@ -4,6 +4,34 @@ go-http-metrics knows how to measure http metrics in different metric formats, i
 
 If you are using a framework that isn't directly compatible with go's `http.Handler` interface from the std library, do not worry, there are multiple helpers available to get middlewares fo the most used http Go frameworks. If there isn't you can open an issue or a PR.
 
+## Table of contents
+
+- [Metrics](#metrics)
+- [Metrics recorder implementations](#metrics-recorder-implementations)
+- [Framework compatibility middlewares](#framework-compatibility-middlewares)
+- [Getting Started](#getting-started)
+- [Prometheus query examples](#prometheus-query-examples)
+- [Options](#options)
+  - [Middleware Options](#middleware-options)
+    - [Recorder](#recorder)
+    - [GroupedStatus](#groupedstatus)
+    - [DisableMeasureSize](#disablemeasuresize)
+    - [Custom handler ID](#custom-handler-id)
+  - [Prometheus recorder options](#prometheus-recorder-options)
+    - [Prefix](#prefix)
+    - [DurationBuckets](#durationbuckets)
+    - [Registry](#registry)
+    - [Label names](#label-names)
+- [Benchmarks](#benchmarks)
+
+## Metrics
+
+The metrics obtained with this middleware are the [most important ones][red] for a HTTP service.
+
+- Records the duration of the requests(with: code, handler, method).
+- Records the count of the requests(with: code, handler, method).
+- Records the size of the responses(with: code, handler, method).
+
 ## Metrics recorder implementations
 
 go-http-metrics is easy to extend to different metric backends by implementing `metrics.Recorder` interface.
@@ -62,13 +90,7 @@ func main() {
 
 For more examples check the [examples]. [default][default-example] and [custom][custom-example] are the examples for Go net/http std library users.
 
-## Metrics
-
-The metrics obtained with this middleware are the [most important ones][red] for a HTTP service.
-
-The middleware will measure the latency seconds of the requests using a histogram (latency), this will give us also the number of requests (rate), and the metric has the status codes (error rate):
-
-### Query examples
+## Prometheus query examples
 
 Get the request rate by handler:
 
@@ -115,6 +137,10 @@ This is the implementation of the metrics backend, by default it's a dummy recor
 
 Storing all the status codes could increase the cardinality of the metrics, usually this is not a common case because the used status codes by a service are not too much and are finite, but some services use a lot of different status codes, grouping the status on the `\dxx` form could impact the performance (in a good way) of the queries on Prometheus (as they are already aggregated), on the other hand it losses detail. For example the metrics code `code="401"`, `code="404"`, `code="403"` with this enabled option would end being `code="4xx"` label. By default is disabled.
 
+#### DisableMeasureSize
+
+This setting will disable measuring the size of the responses. By default measuring the size is enabled.
+
 #### Custom handler ID
 
 One of the options that you need to pass when wrapping the handler with the middleware is `handlerID`, this has 2 working ways.
@@ -147,10 +173,11 @@ The label names of the Prometheus metrics can be configured using `HandlerIDLabe
 
 ```text
 pkg: github.com/slok/go-http-metrics/middleware
-BenchmarkMiddlewareHandler/benchmark_with_default_settings.-4            1000000              1202 ns/op             256 B/op          6 allocs/op
-BenchmarkMiddlewareHandler/benchmark_with_grouped_status_code.-4         1000000              1356 ns/op             256 B/op          7 allocs/op
-BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4        1000000              1019 ns/op             256 B/op          6 allocs/op
 
+BenchmarkMiddlewareHandler/benchmark_with_default_settings.-4            1000000              1062 ns/op             256 B/op          6 allocs/op
+BenchmarkMiddlewareHandler/benchmark_disabling_measuring_size.-4         1000000              1101 ns/op             256 B/op          6 allocs/op
+BenchmarkMiddlewareHandler/benchmark_with_grouped_status_code.-4         1000000              1324 ns/op             256 B/op          7 allocs/op
+BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4        1000000              1155 ns/op             256 B/op          6 allocs/op
 ```
 
 [travis-image]: https://travis-ci.org/slok/go-http-metrics.svg?branch=master

@@ -48,6 +48,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 			// Mocks.
 			mr := &mmetrics.Recorder{}
 			mr.On("ObserveHTTPRequestDuration", test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode)
+			mr.On("ObserveHTTPResponseSize", test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode)
 
 			// Create our instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})

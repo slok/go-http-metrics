@@ -14,3 +14,8 @@ type Recorder struct {
 func (_m *Recorder) ObserveHTTPRequestDuration(id string, duration time.Duration, method string, code string) {
 	_m.Called(id, duration, method, code)
 }
+
+// ObserveHTTPResponseSize provides a mock function with given fields: id, sizeBytes, method, code
+func (_m *Recorder) ObserveHTTPResponseSize(id string, sizeBytes int64, method string, code string) {
+	_m.Called(id, sizeBytes, method, code)
+}
