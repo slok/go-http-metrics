@@ -1,4 +1,4 @@
-## 0.x.x / 2019-xx-xx
+## 0.2.0 / 2019-03-22
 
 * [FEATURE] Add metrics of HTTP response size in bytes.
 * [ENHANCEMENT] Make the label names of Prometheus recorder configurable.
