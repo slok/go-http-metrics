@@ -10,6 +10,8 @@ import (
 type Recorder interface {
 	// ObserveHTTPRequestDuration measures the duration of an HTTP request.
 	ObserveHTTPRequestDuration(id string, duration time.Duration, method, code string)
+	// ObserveHTTPResponseSize measures the size of an HTTP response in bytes.
+	ObserveHTTPResponseSize(id string, sizeBytes int64, method, code string)
 }
 
 // Dummy is a dummy recorder.
@@ -18,3 +20,4 @@ var Dummy = &dummy{}
 type dummy struct{}
 
 func (dummy) ObserveHTTPRequestDuration(id string, duration time.Duration, method, code string) {}
+func (dummy) ObserveHTTPResponseSize(id string, sizeBytes int64, method, code string)           {}

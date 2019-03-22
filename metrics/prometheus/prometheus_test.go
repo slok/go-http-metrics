@@ -30,6 +30,9 @@ func TestPrometheusRecorder(t *testing.T) {
 				r.ObserveHTTPRequestDuration("test1", 175*time.Millisecond, http.MethodGet, "200")
 				r.ObserveHTTPRequestDuration("test2", 50*time.Millisecond, http.MethodGet, "201")
 				r.ObserveHTTPRequestDuration("test3", 700*time.Millisecond, http.MethodPost, "500")
+				r.ObserveHTTPResponseSize("test4", 529930, http.MethodPost, "500")
+				r.ObserveHTTPResponseSize("test4", 231, http.MethodPost, "500")
+				r.ObserveHTTPResponseSize("test4", 99999999, http.MethodPatch, "429")
 			},
 			expMetrics: []string{
 				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.005"} 0`,
@@ -73,6 +76,28 @@ func TestPrometheusRecorder(t *testing.T) {
 				`http_request_duration_seconds_bucket{code="500",handler="test3",method="POST",le="10"} 1`,
 				`http_request_duration_seconds_bucket{code="500",handler="test3",method="POST",le="+Inf"} 1`,
 				`http_request_duration_seconds_count{code="500",handler="test3",method="POST"} 1`,
+
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="100"} 0`,
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="1000"} 0`,
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="10000"} 0`,
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="100000"} 0`,
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="1e+06"} 0`,
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="1e+07"} 0`,
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="1e+08"} 1`,
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="1e+09"} 1`,
+				`http_response_size_bytes_bucket{code="429",handler="test4",method="PATCH",le="+Inf"} 1`,
+				`http_response_size_bytes_count{code="429",handler="test4",method="PATCH"} 1`,
+
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="100"} 0`,
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="1000"} 1`,
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="10000"} 1`,
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="100000"} 1`,
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="1e+06"} 2`,
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="1e+07"} 2`,
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="1e+08"} 2`,
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="1e+09"} 2`,
+				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="+Inf"} 2`,
+				`http_response_size_bytes_count{code="500",handler="test4",method="POST"} 2`,
 			},
 		},
 		{
