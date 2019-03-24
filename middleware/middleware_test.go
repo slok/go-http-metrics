@@ -67,8 +67,10 @@ func TestMiddlewareHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// Mocks.
 			mr := &mmetrics.Recorder{}
-			mr.On("ObserveHTTPRequestDuration", test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode)
-			mr.On("ObserveHTTPResponseSize", test.expHandlerID, test.expSize, test.expMethod, test.expStatusCode)
+			mr.On("ObserveHTTPRequestDuration", test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode).Once()
+			mr.On("ObserveHTTPResponseSize", test.expHandlerID, test.expSize, test.expMethod, test.expStatusCode).Once()
+			mr.On("AddInflightRequests", test.expHandlerID, 1).Once()
+			mr.On("AddInflightRequests", test.expHandlerID, -1).Once()
 
 			// Make the request.
 			test.config.Recorder = mr
@@ -99,6 +101,13 @@ func BenchmarkMiddlewareHandler(b *testing.B) {
 			handlerID: "",
 			cfg: middleware.Config{
 				DisableMeasureSize: true,
+			},
+		},
+		{
+			name:      "benchmark disabling inflights.",
+			handlerID: "",
+			cfg: middleware.Config{
+				DisableMeasureInflight: true,
 			},
 		},
 		{

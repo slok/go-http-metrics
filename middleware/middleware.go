@@ -26,6 +26,10 @@ type Config struct {
 	// DisableMeasureSize will disable the recording metrics about the response size,
 	// by default measuring size is enabled (`DisableMeasureSize` is false).
 	DisableMeasureSize bool
+
+	// DisableMeasureInflight will disable the recording metrics about the inflight requests number,
+	// by default measuring inflights is enabled (`DisableMeasureInflight` is false).
+	DisableMeasureInflight bool
 }
 
 func (c *Config) validate() {
@@ -79,6 +83,12 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 		hid := handlerID
 		if handlerID == "" {
 			hid = r.URL.Path
+		}
+
+		// Measure inflights if required.
+		if !m.cfg.DisableMeasureInflight {
+			m.cfg.Recorder.AddInflightRequests(hid, 1)
+			defer m.cfg.Recorder.AddInflightRequests(hid, -1)
 		}
 
 		// Start the timer and when finishing measure the duration.

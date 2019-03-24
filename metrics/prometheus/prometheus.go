@@ -58,6 +58,7 @@ func (c *Config) defaults() {
 type recorder struct {
 	httpRequestDurHistogram   *prometheus.HistogramVec
 	httpResponseSizeHistogram *prometheus.HistogramVec
+	httpRequestsInflight      *prometheus.GaugeVec
 
 	cfg Config
 }
@@ -82,6 +83,12 @@ func NewRecorder(cfg Config) metrics.Recorder {
 			Help:      "The size of the HTTP responses.",
 			Buckets:   cfg.SizeBuckets,
 		}, []string{cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		httpRequestsInflight: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: cfg.Prefix,
+			Subsystem: "http",
+			Name:      "requests_inflight",
+			Help:      "The number of inflight requests being handled at the same time.",
+		}, []string{cfg.HandlerIDLabel}),
 
 		cfg: cfg,
 	}
@@ -95,6 +102,7 @@ func (r recorder) registerMetrics() {
 	r.cfg.Registry.MustRegister(
 		r.httpRequestDurHistogram,
 		r.httpResponseSizeHistogram,
+		r.httpRequestsInflight,
 	)
 }
 
@@ -104,4 +112,8 @@ func (r recorder) ObserveHTTPRequestDuration(id string, duration time.Duration, 
 
 func (r recorder) ObserveHTTPResponseSize(id string, sizeBytes int64, method, code string) {
 	r.httpResponseSizeHistogram.WithLabelValues(id, method, code).Observe(float64(sizeBytes))
+}
+
+func (r recorder) AddInflightRequests(id string, quantity int) {
+	r.httpRequestsInflight.WithLabelValues(id).Add(float64(quantity))
 }

@@ -1,3 +1,7 @@
+## 0.x.x / 2019-xx-xx
+
+* [FEATURE] Add inflight requests metric per handler.
+
 ## 0.2.0 / 2019-03-22
 
 * [FEATURE] Add metrics of HTTP response size in bytes.

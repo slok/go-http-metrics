@@ -16,6 +16,7 @@ If you are using a framework that isn't directly compatible with go's `http.Hand
     - [Recorder](#recorder)
     - [GroupedStatus](#groupedstatus)
     - [DisableMeasureSize](#disablemeasuresize)
+    - [DisableMeasureInflight](#disablemeasureinflight)
     - [Custom handler ID](#custom-handler-id)
   - [Prometheus recorder options](#prometheus-recorder-options)
     - [Prefix](#prefix)
@@ -31,6 +32,7 @@ The metrics obtained with this middleware are the [most important ones][red] for
 - Records the duration of the requests(with: code, handler, method).
 - Records the count of the requests(with: code, handler, method).
 - Records the size of the responses(with: code, handler, method).
+- Records the number requests being handled concurrently at a given time a.k.a inflight requests (with: handler).
 
 ## Metrics recorder implementations
 
@@ -141,6 +143,10 @@ Storing all the status codes could increase the cardinality of the metrics, usua
 
 This setting will disable measuring the size of the responses. By default measuring the size is enabled.
 
+#### DisableMeasureInflight
+
+This settings will disable measuring the number of requests being handled concurrently by the handlers.
+
 #### Custom handler ID
 
 One of the options that you need to pass when wrapping the handler with the middleware is `handlerID`, this has 2 working ways.
@@ -174,10 +180,11 @@ The label names of the Prometheus metrics can be configured using `HandlerIDLabe
 ```text
 pkg: github.com/slok/go-http-metrics/middleware
 
-BenchmarkMiddlewareHandler/benchmark_with_default_settings.-4            1000000              1062 ns/op             256 B/op          6 allocs/op
-BenchmarkMiddlewareHandler/benchmark_disabling_measuring_size.-4         1000000              1101 ns/op             256 B/op          6 allocs/op
-BenchmarkMiddlewareHandler/benchmark_with_grouped_status_code.-4         1000000              1324 ns/op             256 B/op          7 allocs/op
-BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4        1000000              1155 ns/op             256 B/op          6 allocs/op
+BenchmarkMiddlewareHandler/benchmark_with_default_settings.-4         	 1000000	      1206 ns/op	     256 B/op	       6 allocs/op
+BenchmarkMiddlewareHandler/benchmark_disabling_measuring_size.-4      	 1000000	      1198 ns/op	     256 B/op	       6 allocs/op
+BenchmarkMiddlewareHandler/benchmark_disabling_inflights.-4           	 1000000	      1139 ns/op	     256 B/op	       6 allocs/op
+BenchmarkMiddlewareHandler/benchmark_with_grouped_status_code.-4      	 1000000	      1534 ns/op	     256 B/op	       7 allocs/op
+BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4     	 1000000	      1258 ns/op	     256 B/op	       6 allocs/op
 ```
 
 [travis-image]: https://travis-ci.org/slok/go-http-metrics.svg?branch=master

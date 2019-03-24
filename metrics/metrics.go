@@ -12,6 +12,9 @@ type Recorder interface {
 	ObserveHTTPRequestDuration(id string, duration time.Duration, method, code string)
 	// ObserveHTTPResponseSize measures the size of an HTTP response in bytes.
 	ObserveHTTPResponseSize(id string, sizeBytes int64, method, code string)
+	// AddInflightRequests increments and decrements the number of inflight request being
+	// processed.
+	AddInflightRequests(id string, quantity int)
 }
 
 // Dummy is a dummy recorder.
@@ -21,3 +24,4 @@ type dummy struct{}
 
 func (dummy) ObserveHTTPRequestDuration(id string, duration time.Duration, method, code string) {}
 func (dummy) ObserveHTTPResponseSize(id string, sizeBytes int64, method, code string)           {}
+func (dummy) AddInflightRequests(id string, quantity int)                                       {}
