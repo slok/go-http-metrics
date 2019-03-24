@@ -26,7 +26,6 @@ type Config struct {
 	// DisableMeasureSize will disable the recording metrics about the response size,
 	// by default measuring size is enabled (`DisableMeasureSize` is false).
 	DisableMeasureSize bool
-
 	// DisableMeasureInflight will disable the recording metrics about the inflight requests number,
 	// by default measuring inflights is enabled (`DisableMeasureInflight` is false).
 	DisableMeasureInflight bool

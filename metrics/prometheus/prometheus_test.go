@@ -103,6 +103,7 @@ func TestPrometheusRecorder(t *testing.T) {
 				`http_response_size_bytes_count{code="500",handler="test4",method="POST"} 2`,
 
 				`http_requests_inflight{handler="test1"} 2`,
+
 				`http_requests_inflight{handler="test2"} 9`,
 			},
 		},

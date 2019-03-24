@@ -1,4 +1,4 @@
-## 0.x.x / 2019-xx-xx
+## 0.3.0 / 2019-03-24
 
 * [FEATURE] Add inflight requests metric per handler.
 
