@@ -33,6 +33,9 @@ func TestPrometheusRecorder(t *testing.T) {
 				r.ObserveHTTPResponseSize("test4", 529930, http.MethodPost, "500")
 				r.ObserveHTTPResponseSize("test4", 231, http.MethodPost, "500")
 				r.ObserveHTTPResponseSize("test4", 99999999, http.MethodPatch, "429")
+				r.AddInflightRequests("test1", 5)
+				r.AddInflightRequests("test1", -3)
+				r.AddInflightRequests("test2", 9)
 			},
 			expMetrics: []string{
 				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.005"} 0`,
@@ -98,6 +101,9 @@ func TestPrometheusRecorder(t *testing.T) {
 				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="1e+09"} 2`,
 				`http_response_size_bytes_bucket{code="500",handler="test4",method="POST",le="+Inf"} 2`,
 				`http_response_size_bytes_count{code="500",handler="test4",method="POST"} 2`,
+
+				`http_requests_inflight{handler="test1"} 2`,
+				`http_requests_inflight{handler="test2"} 9`,
 			},
 		},
 		{

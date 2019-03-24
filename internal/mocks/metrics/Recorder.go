@@ -10,6 +10,11 @@ type Recorder struct {
 	mock.Mock
 }
 
+// AddInflightRequests provides a mock function with given fields: id, quantity
+func (_m *Recorder) AddInflightRequests(id string, quantity int) {
+	_m.Called(id, quantity)
+}
+
 // ObserveHTTPRequestDuration provides a mock function with given fields: id, duration, method, code
 func (_m *Recorder) ObserveHTTPRequestDuration(id string, duration time.Duration, method string, code string) {
 	_m.Called(id, duration, method, code)
