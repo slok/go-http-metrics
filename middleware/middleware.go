@@ -86,8 +86,8 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 
 		// Measure inflights if required.
 		if !m.cfg.DisableMeasureInflight {
-			m.cfg.Recorder.AddInflightRequests(hid, 1)
-			defer m.cfg.Recorder.AddInflightRequests(hid, -1)
+			m.cfg.Recorder.AddInflightRequests(r.Context(), hid, 1)
+			defer m.cfg.Recorder.AddInflightRequests(r.Context(), hid, -1)
 		}
 
 		// Start the timer and when finishing measure the duration.
@@ -105,11 +105,11 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 				code = strconv.Itoa(wi.statusCode)
 			}
 
-			m.cfg.Recorder.ObserveHTTPRequestDuration(hid, duration, r.Method, code)
+			m.cfg.Recorder.ObserveHTTPRequestDuration(r.Context(), hid, duration, r.Method, code)
 
 			// Measure size of response if required.
 			if !m.cfg.DisableMeasureSize {
-				m.cfg.Recorder.ObserveHTTPResponseSize(hid, int64(wi.bytesWritten), r.Method, code)
+				m.cfg.Recorder.ObserveHTTPResponseSize(r.Context(), hid, int64(wi.bytesWritten), r.Method, code)
 			}
 
 		}()

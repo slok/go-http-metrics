@@ -1,6 +1,7 @@
 package prometheus_test
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -26,16 +27,16 @@ func TestPrometheusRecorder(t *testing.T) {
 			name:   "Default configuration should measure with the default metric style.",
 			config: libprometheus.Config{},
 			recordMetrics: func(r metrics.Recorder) {
-				r.ObserveHTTPRequestDuration("test1", 5*time.Second, http.MethodGet, "200")
-				r.ObserveHTTPRequestDuration("test1", 175*time.Millisecond, http.MethodGet, "200")
-				r.ObserveHTTPRequestDuration("test2", 50*time.Millisecond, http.MethodGet, "201")
-				r.ObserveHTTPRequestDuration("test3", 700*time.Millisecond, http.MethodPost, "500")
-				r.ObserveHTTPResponseSize("test4", 529930, http.MethodPost, "500")
-				r.ObserveHTTPResponseSize("test4", 231, http.MethodPost, "500")
-				r.ObserveHTTPResponseSize("test4", 99999999, http.MethodPatch, "429")
-				r.AddInflightRequests("test1", 5)
-				r.AddInflightRequests("test1", -3)
-				r.AddInflightRequests("test2", 9)
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 5*time.Second, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 175*time.Millisecond, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test2", 50*time.Millisecond, http.MethodGet, "201")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test3", 700*time.Millisecond, http.MethodPost, "500")
+				r.ObserveHTTPResponseSize(context.TODO(), "test4", 529930, http.MethodPost, "500")
+				r.ObserveHTTPResponseSize(context.TODO(), "test4", 231, http.MethodPost, "500")
+				r.ObserveHTTPResponseSize(context.TODO(), "test4", 99999999, http.MethodPatch, "429")
+				r.AddInflightRequests(context.TODO(), "test1", 5)
+				r.AddInflightRequests(context.TODO(), "test1", -3)
+				r.AddInflightRequests(context.TODO(), "test2", 9)
 			},
 			expMetrics: []string{
 				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.005"} 0`,
@@ -113,8 +114,8 @@ func TestPrometheusRecorder(t *testing.T) {
 				Prefix: "batman",
 			},
 			recordMetrics: func(r metrics.Recorder) {
-				r.ObserveHTTPRequestDuration("test1", 5*time.Second, http.MethodGet, "200")
-				r.ObserveHTTPRequestDuration("test1", 175*time.Millisecond, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 5*time.Second, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 175*time.Millisecond, http.MethodGet, "200")
 			},
 			expMetrics: []string{
 				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.005"} 0`,
@@ -138,8 +139,8 @@ func TestPrometheusRecorder(t *testing.T) {
 				DurationBuckets: []float64{1, 2, 10, 20, 50, 200, 500, 1000, 2000, 5000, 10000},
 			},
 			recordMetrics: func(r metrics.Recorder) {
-				r.ObserveHTTPRequestDuration("test1", 75*time.Minute, http.MethodGet, "200")
-				r.ObserveHTTPRequestDuration("test1", 200*time.Hour, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 75*time.Minute, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 200*time.Hour, http.MethodGet, "200")
 			},
 			expMetrics: []string{
 				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="1"} 0`,
@@ -165,8 +166,8 @@ func TestPrometheusRecorder(t *testing.T) {
 				MethodLabel:     "http_method",
 			},
 			recordMetrics: func(r metrics.Recorder) {
-				r.ObserveHTTPRequestDuration("test1", 5*time.Second, http.MethodGet, "200")
-				r.ObserveHTTPRequestDuration("test1", 175*time.Millisecond, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 5*time.Second, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 175*time.Millisecond, http.MethodGet, "200")
 			},
 			expMetrics: []string{
 				`http_request_duration_seconds_bucket{http_method="GET",route_id="test1",status_code="200",le="0.005"} 0`,

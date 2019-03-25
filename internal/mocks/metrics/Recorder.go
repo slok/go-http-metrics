@@ -2,6 +2,8 @@
 
 package metrics
 
+import context "context"
+
 import mock "github.com/stretchr/testify/mock"
 import time "time"
 
@@ -10,17 +12,17 @@ type Recorder struct {
 	mock.Mock
 }
 
-// AddInflightRequests provides a mock function with given fields: id, quantity
-func (_m *Recorder) AddInflightRequests(id string, quantity int) {
-	_m.Called(id, quantity)
+// AddInflightRequests provides a mock function with given fields: ctx, id, quantity
+func (_m *Recorder) AddInflightRequests(ctx context.Context, id string, quantity int) {
+	_m.Called(ctx, id, quantity)
 }
 
-// ObserveHTTPRequestDuration provides a mock function with given fields: id, duration, method, code
-func (_m *Recorder) ObserveHTTPRequestDuration(id string, duration time.Duration, method string, code string) {
-	_m.Called(id, duration, method, code)
+// ObserveHTTPRequestDuration provides a mock function with given fields: ctx, id, duration, method, code
+func (_m *Recorder) ObserveHTTPRequestDuration(ctx context.Context, id string, duration time.Duration, method string, code string) {
+	_m.Called(ctx, id, duration, method, code)
 }
 
-// ObserveHTTPResponseSize provides a mock function with given fields: id, sizeBytes, method, code
-func (_m *Recorder) ObserveHTTPResponseSize(id string, sizeBytes int64, method string, code string) {
-	_m.Called(id, sizeBytes, method, code)
+// ObserveHTTPResponseSize provides a mock function with given fields: ctx, id, sizeBytes, method, code
+func (_m *Recorder) ObserveHTTPResponseSize(ctx context.Context, id string, sizeBytes int64, method string, code string) {
+	_m.Called(ctx, id, sizeBytes, method, code)
 }
