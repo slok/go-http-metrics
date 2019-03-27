@@ -19,13 +19,8 @@ const (
 	metricsAddr = ":8081"
 )
 
-// this example will show the simplest way of enabling the middleware
-// using go std handlers without frameworks with the Prometheues recorder.
-// it uses the prometheus default registry, the middleware default options
-// and doesn't set the handler ID, so the middleware will set the handler id
-// (handler label) to the request URL, WARNING: this creates high cardinality because
-// `/profile/123` and `/profile/567` are different handlers. If you want to be safer
-// you will need to tell the middleware what is the handler id.
+// This example will show how you could use opencensus with go-http-middleware
+// and serve the metrics in Prometheus format (through OpenCensus).
 func main() {
 	// Create OpenCensus with Prometheus.
 	ocexporter, err := ocprometheus.NewExporter(ocprometheus.Options{})
