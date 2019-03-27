@@ -13,16 +13,8 @@ If you are using a framework that isn't directly compatible with go's `http.Hand
 - [Prometheus query examples](#prometheus-query-examples)
 - [Options](#options)
   - [Middleware Options](#middleware-options)
-    - [Recorder](#recorder)
-    - [GroupedStatus](#groupedstatus)
-    - [DisableMeasureSize](#disablemeasuresize)
-    - [DisableMeasureInflight](#disablemeasureinflight)
-    - [Custom handler ID](#custom-handler-id)
   - [Prometheus recorder options](#prometheus-recorder-options)
-    - [Prefix](#prefix)
-    - [DurationBuckets](#durationbuckets)
-    - [Registry](#registry)
-    - [Label names](#label-names)
+  - [OpenCensus recorder options](#opencensus-recorder-options)
 - [Benchmarks](#benchmarks)
 
 ## Metrics
@@ -168,6 +160,10 @@ This option will make exposed metrics have a `{PREFIX}_` in fornt of the metric.
 
 DurationBuckets are the buckets used for the request duration histogram metric, by default it will use Prometheus defaults, this is from 5ms to 10s, on a regular HTTP service this is very common and in most cases this default works perfect, but on some cases where the latency is very low or very high due the nature of the service, this could be changed to measure a different range of time. Example, from 500ms to 320s `Buckets: []float64{.5, 1, 2.5, 5, 10, 20, 40, 80, 160, 320}`. Is not adviced to use more than 10 buckets.
 
+#### SizeBuckets
+
+This works the same as the `DurationBuckets` but for the metric that measures the size of the responses. It's measured in bytes and by default goes form 1B to 1GB.
+
 #### Registry
 
 The Prometheus registry to use, by default it will use Prometheus global registry (the default one on Prometheus library).
@@ -175,6 +171,24 @@ The Prometheus registry to use, by default it will use Prometheus global registr
 #### Label names
 
 The label names of the Prometheus metrics can be configured using `HandlerIDLabel`, `StatusCodeLabel`, `MethodLabel`...
+
+### OpenCensus recorder options
+
+#### DurationBuckets
+
+Same option as the Prometheus recorder.
+
+#### SizeBuckets
+
+Same option as the Prometheus recorder.
+
+#### Label names
+
+Same options as the Prometheus recorder.
+
+#### UnregisterViewsBeforeRegister
+
+This Option is used to unregister the Recorder views before are being registered, this is option is mainly due to the nature of OpenCensus implementation and the huge usage fo global state making impossible to run multiple tests. On regular usage of the library this setting is very rare that needs to be used.
 
 ## Benchmarks
 
