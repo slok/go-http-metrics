@@ -1,4 +1,4 @@
-package prometheus_test
+package opencensus_test
 
 import (
 	"context"
@@ -8,28 +8,29 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	ocprometheus "go.opencensus.io/exporter/prometheus"
+	"go.opencensus.io/stats/view"
 
 	"github.com/slok/go-http-metrics/metrics"
-	libprometheus "github.com/slok/go-http-metrics/metrics/prometheus"
+	ocmetrics "github.com/slok/go-http-metrics/metrics/opencensus"
 )
 
-func TestPrometheusRecorder(t *testing.T) {
+func TestOpenCensusRecorder(t *testing.T) {
 	tests := []struct {
 		name          string
-		config        libprometheus.Config
+		config        ocmetrics.Config
 		recordMetrics func(r metrics.Recorder)
 		expMetrics    []string
 	}{
 		{
 			name:   "Default configuration should measure with the default metric style.",
-			config: libprometheus.Config{},
+			config: ocmetrics.Config{},
 			recordMetrics: func(r metrics.Recorder) {
-				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 5*time.Second, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 4*time.Second, http.MethodGet, "200")
 				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 175*time.Millisecond, http.MethodGet, "200")
-				r.ObserveHTTPRequestDuration(context.TODO(), "test2", 50*time.Millisecond, http.MethodGet, "201")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test2", 30*time.Millisecond, http.MethodGet, "201")
 				r.ObserveHTTPRequestDuration(context.TODO(), "test3", 700*time.Millisecond, http.MethodPost, "500")
 				r.ObserveHTTPResponseSize(context.TODO(), "test4", 529930, http.MethodPost, "500")
 				r.ObserveHTTPResponseSize(context.TODO(), "test4", 231, http.MethodPost, "500")
@@ -109,33 +110,8 @@ func TestPrometheusRecorder(t *testing.T) {
 			},
 		},
 		{
-			name: "Using a prefix in the configuration should measure with prefix.",
-			config: libprometheus.Config{
-				Prefix: "batman",
-			},
-			recordMetrics: func(r metrics.Recorder) {
-				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 5*time.Second, http.MethodGet, "200")
-				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 175*time.Millisecond, http.MethodGet, "200")
-			},
-			expMetrics: []string{
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.005"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.01"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.025"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.05"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.1"} 0`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.25"} 1`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="0.5"} 1`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="1"} 1`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="2.5"} 1`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="5"} 2`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="10"} 2`,
-				`batman_http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",le="+Inf"} 2`,
-				`batman_http_request_duration_seconds_count{code="200",handler="test1",method="GET"} 2`,
-			},
-		},
-		{
 			name: "Using custom buckets in the configuration should measure with custom buckets.",
-			config: libprometheus.Config{
+			config: ocmetrics.Config{
 				DurationBuckets: []float64{1, 2, 10, 20, 50, 200, 500, 1000, 2000, 5000, 10000},
 			},
 			recordMetrics: func(r metrics.Recorder) {
@@ -160,13 +136,13 @@ func TestPrometheusRecorder(t *testing.T) {
 		},
 		{
 			name: "Using a custom labels in the configuration should measure with those labels.",
-			config: libprometheus.Config{
+			config: ocmetrics.Config{
 				HandlerIDLabel:  "route_id",
 				StatusCodeLabel: "status_code",
 				MethodLabel:     "http_method",
 			},
 			recordMetrics: func(r metrics.Recorder) {
-				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 5*time.Second, http.MethodGet, "200")
+				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 4*time.Second, http.MethodGet, "200")
 				r.ObserveHTTPRequestDuration(context.TODO(), "test1", 175*time.Millisecond, http.MethodGet, "200")
 			},
 			expMetrics: []string{
@@ -190,16 +166,27 @@ func TestPrometheusRecorder(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert := assert.New(t)
+			require := require.New(t)
 
-			reg := prometheus.NewRegistry()
-			test.config.Registry = reg
-			mrecorder := libprometheus.NewRecorder(test.config)
+			// Initialize opencensus.
+			ocexporter, err := ocprometheus.NewExporter(ocprometheus.Options{})
+			require.NoError(err)
+			view.RegisterExporter(ocexporter)
+
+			// Create our recorder.
+			test.config.UnregisterViewsBeforeRegister = true
+			mrecorder, err := ocmetrics.NewRecorder(test.config)
+			require.NoError(err)
 			test.recordMetrics(mrecorder)
+
+			// Set reporting time and wait to compute metrics view.
+			view.SetReportingPeriod(1 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 
 			// Get the metrics handler and serve.
 			rec := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/metrics", nil)
-			promhttp.HandlerFor(reg, promhttp.HandlerOpts{}).ServeHTTP(rec, req)
+			ocexporter.ServeHTTP(rec, req)
 
 			resp := rec.Result()
 

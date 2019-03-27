@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"context"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -106,14 +107,14 @@ func (r recorder) registerMetrics() {
 	)
 }
 
-func (r recorder) ObserveHTTPRequestDuration(id string, duration time.Duration, method, code string) {
+func (r recorder) ObserveHTTPRequestDuration(_ context.Context, id string, duration time.Duration, method, code string) {
 	r.httpRequestDurHistogram.WithLabelValues(id, method, code).Observe(duration.Seconds())
 }
 
-func (r recorder) ObserveHTTPResponseSize(id string, sizeBytes int64, method, code string) {
+func (r recorder) ObserveHTTPResponseSize(_ context.Context, id string, sizeBytes int64, method, code string) {
 	r.httpResponseSizeHistogram.WithLabelValues(id, method, code).Observe(float64(sizeBytes))
 }
 
-func (r recorder) AddInflightRequests(id string, quantity int) {
+func (r recorder) AddInflightRequests(_ context.Context, id string, quantity int) {
 	r.httpRequestsInflight.WithLabelValues(id).Add(float64(quantity))
 }

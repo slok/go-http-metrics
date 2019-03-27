@@ -47,10 +47,10 @@ func TestMiddlewareIntegration(t *testing.T) {
 
 			// Mocks.
 			mr := &mmetrics.Recorder{}
-			mr.On("ObserveHTTPRequestDuration", test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode).Once()
-			mr.On("ObserveHTTPResponseSize", test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode).Once()
-			mr.On("AddInflightRequests", test.expHandlerID, 1).Once()
-			mr.On("AddInflightRequests", test.expHandlerID, -1).Once()
+			mr.On("ObserveHTTPRequestDuration", mock.Anything, test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode).Once()
+			mr.On("ObserveHTTPResponseSize", mock.Anything, test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode).Once()
+			mr.On("AddInflightRequests", mock.Anything, test.expHandlerID, 1).Once()
+			mr.On("AddInflightRequests", mock.Anything, test.expHandlerID, -1).Once()
 
 			// Create our negroni instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})

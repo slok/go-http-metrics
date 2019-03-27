@@ -39,6 +39,7 @@ The metrics obtained with this middleware are the [most important ones][red] for
 go-http-metrics is easy to extend to different metric backends by implementing `metrics.Recorder` interface.
 
 - [Prometheus][prometheus-recorder]
+- [OpenCensus][opencensus-recorder]
 
 ## Framework compatibility middlewares
 
@@ -203,3 +204,4 @@ BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4     	 1000000	
 [httprouter-example]: examples/httprouter
 [gorestful-example]: examples/gorestful
 [prometheus-recorder]: metrics/prometheus
+[opencensus-recorder]: metrics/opencensus
