@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	ocprometheus "contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	ocprometheus "go.opencensus.io/exporter/prometheus"
 	"go.opencensus.io/stats/view"
 
 	"github.com/slok/go-http-metrics/metrics"
