@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"time"
 
+	ocprometheus "contrib.go.opencensus.io/exporter/prometheus"
 	ocmmetrics "github.com/slok/go-http-metrics/metrics/opencensus"
 	"github.com/slok/go-http-metrics/middleware"
-	ocprometheus "go.opencensus.io/exporter/prometheus"
 	"go.opencensus.io/stats/view"
 )
 
