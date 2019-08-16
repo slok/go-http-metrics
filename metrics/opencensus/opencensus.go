@@ -195,3 +195,13 @@ func (r recorder) AddInflightRequests(ctx context.Context, id string, quantity i
 
 	stats.Record(ctx, r.inflightCount.M(int64(quantity)))
 }
+
+func (r recorder) RegisterHTTPRequestDurationValues(id string, method, code string) {
+
+}
+
+func (r recorder) RegisterHTTPResponseSizeValues(id string, method, code string) {
+}
+
+func (r recorder) RegisterInflightRequestsValues(id string) {
+}

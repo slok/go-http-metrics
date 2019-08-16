@@ -118,3 +118,24 @@ func (r recorder) ObserveHTTPResponseSize(_ context.Context, id string, sizeByte
 func (r recorder) AddInflightRequests(_ context.Context, id string, quantity int) {
 	r.httpRequestsInflight.WithLabelValues(id).Add(float64(quantity))
 }
+
+// RegisterHTTPRequestDurationValues allows for pre-registering values of id,
+// duration, method and code so that the coresponding metrics are emited
+// right from the start of the recorder and not just with the first request
+func (r recorder) RegisterHTTPRequestDurationValues(id string, method, code string) {
+	r.httpRequestDurHistogram.WithLabelValues(id, method, code)
+}
+
+// RegisterHTTPResponseSizeValues allows for pre-registering values of id,
+// duration, method and code so that the coresponding metrics are emited
+// right from the start of the recorder and not just with the first request
+func (r recorder) RegisterHTTPResponseSizeValues(id string, method, code string) {
+	r.httpResponseSizeHistogram.WithLabelValues(id, method, code)
+}
+
+// RegisterInflightRequestsValues allows for pre-registering values of id,
+// duration, method and code so that the coresponding metrics are emited
+// right from the start of the recorder and not just with the first request
+func (r recorder) RegisterInflightRequestsValues(id string) {
+	r.httpRequestsInflight.WithLabelValues(id)
+}

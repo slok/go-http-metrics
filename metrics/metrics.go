@@ -16,6 +16,21 @@ type Recorder interface {
 	// AddInflightRequests increments and decrements the number of inflight request being
 	// processed.
 	AddInflightRequests(ctx context.Context, id string, quantity int)
+
+	// RegisterHTTPRequestDurationValues allows for pre-registering values of id,
+	// duration, method and code so that the coresponding metrics are emited
+	// right from the start of the recorder and not just with the first request
+	RegisterHTTPRequestDurationValues(id string, method, code string)
+
+	// RegisterHTTPResponseSizeValues allows for pre-registering values of id,
+	// duration, method and code so that the coresponding metrics are emited
+	// right from the start of the recorder and not just with the first request
+	RegisterHTTPResponseSizeValues(id string, method, code string)
+
+	// RegisterInflightRequestsValues allows for pre-registering values of id,
+	// duration, method and code so that the coresponding metrics are emited
+	// right from the start of the recorder and not just with the first request
+	RegisterInflightRequestsValues(id string)
 }
 
 // Dummy is a dummy recorder.
@@ -28,3 +43,10 @@ func (dummy) ObserveHTTPRequestDuration(ctx context.Context, id string, duration
 func (dummy) ObserveHTTPResponseSize(ctx context.Context, id string, sizeBytes int64, method, code string) {
 }
 func (dummy) AddInflightRequests(ctx context.Context, id string, quantity int) {}
+
+func (dummy) RegisterHTTPRequestDurationValues(id string, method, code string) {
+}
+func (dummy) RegisterHTTPResponseSizeValues(id string, method, code string) {
+}
+func (dummy) RegisterInflightRequestsValues(id string) {
+}

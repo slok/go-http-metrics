@@ -26,3 +26,18 @@ func (_m *Recorder) ObserveHTTPRequestDuration(ctx context.Context, id string, d
 func (_m *Recorder) ObserveHTTPResponseSize(ctx context.Context, id string, sizeBytes int64, method string, code string) {
 	_m.Called(ctx, id, sizeBytes, method, code)
 }
+
+// RegisterHTTPRequestDurationValues provides a mock function with given fields: id, method, code
+func (_m *Recorder) RegisterHTTPRequestDurationValues(id string, method string, code string) {
+	_m.Called(id, method, code)
+}
+
+// RegisterHTTPResponseSizeValues provides a mock function with given fields: id, method, code
+func (_m *Recorder) RegisterHTTPResponseSizeValues(id string, method string, code string) {
+	_m.Called(id, method, code)
+}
+
+// RegisterInflightRequestsValues provides a mock function with given fields: id
+func (_m *Recorder) RegisterInflightRequestsValues(id string) {
+	_m.Called(id)
+}
