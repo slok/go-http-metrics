@@ -140,6 +140,10 @@ This setting will disable measuring the size of the responses. By default measur
 
 This settings will disable measuring the number of requests being handled concurrently by the handlers.
 
+#### DisableMeasureNotFoundStatus 
+
+This setting will disable measuring duration and size when status is 404 not found, this prevents from producing results for non-existent endpoints. Most frameworks return 404 when there is no handler for the request, but 404 can still be returned for an endpoint with a handler, so use with caution.  
+
 #### Custom handler ID
 
 One of the options that you need to pass when wrapping the handler with the middleware is `handlerID`, this has 2 working ways.

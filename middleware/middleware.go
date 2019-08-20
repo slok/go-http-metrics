@@ -29,9 +29,9 @@ type Config struct {
 	// DisableMeasureInflight will disable the recording metrics about the inflight requests number,
 	// by default measuring inflights is enabled (`DisableMeasureInflight` is false).
 	DisableMeasureInflight bool
-	// OmitNotFoundStatus omit recording data when status is 404 not found, this prevents from producing
-	// results for non-exists endpoints
-	OmitNotFoundStatus bool
+	// DisableMeasureNotFoundStatus omit recording data when status is 404 not found, this prevents from producing
+	// results for non-existent endpoints
+	DisableMeasureNotFoundStatus bool
 }
 
 func (c *Config) validate() {
@@ -102,7 +102,7 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 			// first number of the status code because is the least
 			// required identification way.
 			var code string
-			if m.cfg.OmitNotFoundStatus && wi.statusCode == 404 {
+			if m.cfg.DisableMeasureNotFoundStatus && wi.statusCode == http.StatusNotFound {
 				return
 			}
 			if m.cfg.GroupedStatus {
