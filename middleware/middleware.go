@@ -29,6 +29,9 @@ type Config struct {
 	// DisableMeasureInflight will disable the recording metrics about the inflight requests number,
 	// by default measuring inflights is enabled (`DisableMeasureInflight` is false).
 	DisableMeasureInflight bool
+	// OmitNotFoundStatus omit recording data when status is 404 not found, this prevents from producing
+	// results for non-exists endpoints
+	OmitNotFoundStatus bool
 }
 
 func (c *Config) validate() {
@@ -49,7 +52,7 @@ type Middleware interface {
 	Handler(handlerID string, h http.Handler) http.Handler
 }
 
-// middelware is the prometheus middleware instance.
+// middleware is the prometheus middleware instance.
 type middleware struct {
 	cfg Config
 }
@@ -99,6 +102,9 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 			// first number of the status code because is the least
 			// required identification way.
 			var code string
+			if m.cfg.OmitNotFoundStatus && wi.statusCode == 404 {
+				return
+			}
 			if m.cfg.GroupedStatus {
 				code = fmt.Sprintf("%dxx", wi.statusCode/100)
 			} else {
