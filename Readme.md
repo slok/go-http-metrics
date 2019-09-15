@@ -1,4 +1,4 @@
-# go-http-metrics [![Build Status][travis-image]][travis-url] [![Go Report Card][goreport-image]][goreport-url] [![GoDoc][godoc-image]][godoc-url]
+# go-http-metrics [![Build Status][github-actions-image]][github-actions-url] [![Go Report Card][goreport-image]][goreport-url] [![GoDoc][godoc-image]][godoc-url]
 
 go-http-metrics knows how to measure http metrics in different metric formats, it comes with a middleware that will measure metrics of a Go net/http handler. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
 
@@ -202,8 +202,8 @@ BenchmarkMiddlewareHandler/benchmark_with_grouped_status_code.-4      	 1000000	
 BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4     	 1000000	      1258 ns/op	     256 B/op	       6 allocs/op
 ```
 
-[travis-image]: https://travis-ci.org/slok/go-http-metrics.svg?branch=master
-[travis-url]: https://travis-ci.org/slok/go-http-metrics
+[github-actions-image]: https://github.com/slok/go-http-metrics/workflows/Go/badge.svg
+[github-actions-url]: https://github.com/slok/go-http-metrics/actions
 [goreport-image]: https://goreportcard.com/badge/github.com/slok/go-http-metrics
 [goreport-url]: https://goreportcard.com/report/github.com/slok/go-http-metrics
 [godoc-image]: https://godoc.org/github.com/slok/go-http-metrics?status.svg
