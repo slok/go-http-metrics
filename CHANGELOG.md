@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Gin compatible middleware.
+
 ## [0.4.0] - 2019-03-27
 
 ### Breaking changes
