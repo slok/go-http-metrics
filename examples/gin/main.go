@@ -7,11 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	gorestful "github.com/emicklei/go-restful"
+	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
-	gorestfulmiddleware "github.com/slok/go-http-metrics/middleware/gorestful"
+	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 )
 
 const (
@@ -25,28 +25,22 @@ func main() {
 		Recorder: metrics.NewRecorder(metrics.Config{}),
 	})
 
-	// Create our gorestful instance.
-	c := gorestful.NewContainer()
-
-	// Add the middleware for all routes.
-	c.Filter(gorestfulmiddleware.Handler("", mdlw))
+	// Create Gin engine and global middleware.
+	engine := gin.New()
+	engine.Use(ginmiddleware.Handler("", mdlw))
 
 	// Add our handler.
-	ws := &gorestful.WebService{}
-	ws.Produces(gorestful.MIME_JSON)
-
-	ws.Route(ws.GET("/").To(func(_ *gorestful.Request, resp *gorestful.Response) {
-		resp.WriteEntity("Hello world")
-	}))
-	ws.Route(ws.GET("/wrong").To(func(_ *gorestful.Request, resp *gorestful.Response) {
-		resp.WriteHeaderAndEntity(http.StatusTooManyRequests, "oops")
-	}))
-	c.Add(ws)
+	engine.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Hello world")
+	})
+	engine.GET("/wrong", func(c *gin.Context) {
+		c.String(http.StatusTooManyRequests, "oops")
+	})
 
 	// Serve our handler.
 	go func() {
 		log.Printf("server listening at %s", srvAddr)
-		if err := http.ListenAndServe(srvAddr, c); err != nil {
+		if err := http.ListenAndServe(srvAddr, engine); err != nil {
 			log.Panicf("error while serving: %s", err)
 		}
 	}()

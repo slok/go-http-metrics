@@ -41,6 +41,7 @@ The middleware is mainly focused to be compatible with Go std library using http
 - [Negroni][negroni-example]
 - [httprouter][httprouter-example]
 - [go-restful][gorestful-example]
+- [Gin][gin-example]
 
 ## Getting Started
 
@@ -202,7 +203,7 @@ BenchmarkMiddlewareHandler/benchmark_with_grouped_status_code.-4      	 1000000	
 BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4     	 1000000	      1258 ns/op	     256 B/op	       6 allocs/op
 ```
 
-[github-actions-image]: https://github.com/slok/go-http-metrics/workflows/Go/badge.svg
+[github-actions-image]: https://github.com/slok/go-http-metrics/workflows/CI/badge.svg
 [github-actions-url]: https://github.com/slok/go-http-metrics/actions
 [goreport-image]: https://goreportcard.com/badge/github.com/slok/go-http-metrics
 [goreport-url]: https://goreportcard.com/report/github.com/slok/go-http-metrics
@@ -217,5 +218,6 @@ BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4     	 1000000	
 [negroni-example]: examples/negroni
 [httprouter-example]: examples/httprouter
 [gorestful-example]: examples/gorestful
+[gin-example]: examples/gin
 [prometheus-recorder]: metrics/prometheus
 [opencensus-recorder]: metrics/opencensus
