@@ -27,6 +27,7 @@ func TestMiddlewareHandler(t *testing.T) {
 		req           *http.Request
 		config        middleware.Config
 		expHandlerID  string
+		expService    string
 		expMethod     string
 		expSize       int64
 		expStatusCode string
@@ -37,6 +38,7 @@ func TestMiddlewareHandler(t *testing.T) {
 			body:          "Я бэтмен",
 			req:           httptest.NewRequest(http.MethodGet, "/test", nil),
 			expHandlerID:  "/test",
+			expService:    "",
 			expSize:       15,
 			expMethod:     http.MethodGet,
 			expStatusCode: "202",
@@ -48,6 +50,7 @@ func TestMiddlewareHandler(t *testing.T) {
 			statusCode:    http.StatusTeapot,
 			req:           httptest.NewRequest(http.MethodPost, "/test", nil),
 			expHandlerID:  "customID",
+			expService:    "",
 			expSize:       10,
 			expMethod:     http.MethodPost,
 			expStatusCode: "418",
@@ -58,8 +61,21 @@ func TestMiddlewareHandler(t *testing.T) {
 			statusCode:    http.StatusGatewayTimeout,
 			req:           httptest.NewRequest(http.MethodPatch, "/test", nil),
 			expHandlerID:  "/test",
+			expService:    "",
 			expMethod:     http.MethodPatch,
 			expStatusCode: "5xx",
+		},
+		{
+			name:          "Using the service middleware option should set the service on the metrics.",
+			config:        middleware.Config{Service: "Yoda"},
+			statusCode:    http.StatusContinue,
+			body:          "May the force be with you",
+			req:           httptest.NewRequest(http.MethodGet, "/test", nil),
+			expHandlerID:  "/test",
+			expService:    "Yoda",
+			expSize:       25,
+			expMethod:     http.MethodGet,
+			expStatusCode: "100",
 		},
 	}
 
@@ -67,10 +83,20 @@ func TestMiddlewareHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// Mocks.
 			mr := &mmetrics.Recorder{}
-			mr.On("ObserveHTTPRequestDuration", mock.Anything, test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode).Once()
-			mr.On("ObserveHTTPResponseSize", mock.Anything, test.expHandlerID, test.expSize, test.expMethod, test.expStatusCode).Once()
-			mr.On("AddInflightRequests", mock.Anything, test.expHandlerID, 1).Once()
-			mr.On("AddInflightRequests", mock.Anything, test.expHandlerID, -1).Once()
+			expHTTPReqProps := metrics.HTTPReqProperties{
+				ID:      test.expHandlerID,
+				Service: test.expService,
+				Method:  test.expMethod,
+				Code:    test.expStatusCode,
+			}
+			expHTTPProps := metrics.HTTPProperties{
+				ID:      test.expHandlerID,
+				Service: test.expService,
+			}
+			mr.On("ObserveHTTPRequestDuration", mock.Anything, expHTTPReqProps, mock.Anything).Once()
+			mr.On("ObserveHTTPResponseSize", mock.Anything, expHTTPReqProps, test.expSize).Once()
+			mr.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
+			mr.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
 
 			// Make the request.
 			test.config.Recorder = mr

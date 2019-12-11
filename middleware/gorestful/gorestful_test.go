@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	mmetrics "github.com/slok/go-http-metrics/internal/mocks/metrics"
+	"github.com/slok/go-http-metrics/metrics"
 	"github.com/slok/go-http-metrics/middleware"
 	gorestfulmiddleware "github.com/slok/go-http-metrics/middleware/gorestful"
 )
@@ -28,6 +29,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 		req           *http.Request
 		config        middleware.Config
 		expHandlerID  string
+		expService    string
 		expMethod     string
 		expStatusCode string
 	}{
@@ -47,10 +49,20 @@ func TestMiddlewareIntegration(t *testing.T) {
 
 			// Mocks.
 			mr := &mmetrics.Recorder{}
-			mr.On("ObserveHTTPRequestDuration", mock.Anything, test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode).Once()
-			mr.On("ObserveHTTPResponseSize", mock.Anything, test.expHandlerID, mock.Anything, test.expMethod, test.expStatusCode).Once()
-			mr.On("AddInflightRequests", mock.Anything, test.expHandlerID, 1).Once()
-			mr.On("AddInflightRequests", mock.Anything, test.expHandlerID, -1).Once()
+			expHTTPReqProps := metrics.HTTPReqProperties{
+				ID:      test.expHandlerID,
+				Service: test.expService,
+				Method:  test.expMethod,
+				Code:    test.expStatusCode,
+			}
+			expHTTPProps := metrics.HTTPProperties{
+				ID:      test.expHandlerID,
+				Service: test.expService,
+			}
+			mr.On("ObserveHTTPRequestDuration", mock.Anything, expHTTPReqProps, mock.Anything).Once()
+			mr.On("ObserveHTTPResponseSize", mock.Anything, expHTTPReqProps, mock.Anything).Once()
+			mr.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
+			mr.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
 
 			// Create our instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
