@@ -32,6 +32,6 @@ deps:
 mocks:
 	$(MOCKS_CMD)
 
-.PHONY: godoc
-godoc: 
+.PHONY: docs
+docs: 
 	godoc -http=":6060"
