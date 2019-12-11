@@ -4,7 +4,7 @@
 
 ### Breaking changes
 
-- The Recorder methods now receive `service` argument to identify the service.
+- The Recorder methods now receive properties in a single argument, this will make less breaking changes and better API (there where too many arguments for a function).
 
 ### Added
 
