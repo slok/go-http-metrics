@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2019-12-11
+
 ### Breaking changes
 
 - The Recorder methods now receive properties in a single argument, this will make less breaking changes and better API (there where too many arguments for a function).
@@ -14,7 +16,7 @@
 
 - The Recorder methods now receive properties in a single argument, this will make less breaking changes and better API (there where too many arguments for a function)
 
-## [0.5.0] - 2019-12-12
+## [0.5.0] - 2019-12-10
 
 ### Added
 
@@ -57,7 +59,8 @@
 - HTTP latency requests.
 - Prometheus recorder.
 
-[unreleased]: https://github.com/slok/go-http-metrics/compare/v0.5.0...HEAD
+[unreleased]: https://github.com/slok/go-http-metrics/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/slok/go-http-metrics/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/slok/go-http-metrics/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/slok/go-http-metrics/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/slok/go-http-metrics/compare/v0.2.0...v0.3.0
