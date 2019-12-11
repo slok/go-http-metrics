@@ -3,7 +3,7 @@
 package metrics
 
 import context "context"
-
+import metrics "github.com/slok/go-http-metrics/metrics"
 import mock "github.com/stretchr/testify/mock"
 import time "time"
 
@@ -12,17 +12,17 @@ type Recorder struct {
 	mock.Mock
 }
 
-// AddInflightRequests provides a mock function with given fields: ctx, id, quantity
-func (_m *Recorder) AddInflightRequests(ctx context.Context, id string, quantity int) {
-	_m.Called(ctx, id, quantity)
+// AddInflightRequests provides a mock function with given fields: ctx, props, quantity
+func (_m *Recorder) AddInflightRequests(ctx context.Context, props metrics.HTTPProperties, quantity int) {
+	_m.Called(ctx, props, quantity)
 }
 
-// ObserveHTTPRequestDuration provides a mock function with given fields: ctx, id, duration, method, code
-func (_m *Recorder) ObserveHTTPRequestDuration(ctx context.Context, id string, duration time.Duration, method string, code string) {
-	_m.Called(ctx, id, duration, method, code)
+// ObserveHTTPRequestDuration provides a mock function with given fields: ctx, props, duration
+func (_m *Recorder) ObserveHTTPRequestDuration(ctx context.Context, props metrics.HTTPReqProperties, duration time.Duration) {
+	_m.Called(ctx, props, duration)
 }
 
-// ObserveHTTPResponseSize provides a mock function with given fields: ctx, id, sizeBytes, method, code
-func (_m *Recorder) ObserveHTTPResponseSize(ctx context.Context, id string, sizeBytes int64, method string, code string) {
-	_m.Called(ctx, id, sizeBytes, method, code)
+// ObserveHTTPResponseSize provides a mock function with given fields: ctx, props, sizeBytes
+func (_m *Recorder) ObserveHTTPResponseSize(ctx context.Context, props metrics.HTTPReqProperties, sizeBytes int64) {
+	_m.Called(ctx, props, sizeBytes)
 }

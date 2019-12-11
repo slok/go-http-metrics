@@ -28,6 +28,8 @@ type Config struct {
 	StatusCodeLabel string
 	// MethodLabel is the name that will be set to the method label, by default is `method`.
 	MethodLabel string
+	// ServiceLabel is the name that will be set to the service label, by default is `service`.
+	ServiceLabel string
 }
 
 func (c *Config) defaults() {
@@ -54,14 +56,16 @@ func (c *Config) defaults() {
 	if c.MethodLabel == "" {
 		c.MethodLabel = "method"
 	}
+
+	if c.ServiceLabel == "" {
+		c.ServiceLabel = "service"
+	}
 }
 
 type recorder struct {
 	httpRequestDurHistogram   *prometheus.HistogramVec
 	httpResponseSizeHistogram *prometheus.HistogramVec
 	httpRequestsInflight      *prometheus.GaugeVec
-
-	cfg Config
 }
 
 // NewRecorder returns a new metrics recorder that implements the recorder
@@ -76,45 +80,41 @@ func NewRecorder(cfg Config) metrics.Recorder {
 			Name:      "request_duration_seconds",
 			Help:      "The latency of the HTTP requests.",
 			Buckets:   cfg.DurationBuckets,
-		}, []string{cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+
 		httpResponseSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: cfg.Prefix,
 			Subsystem: "http",
 			Name:      "response_size_bytes",
 			Help:      "The size of the HTTP responses.",
 			Buckets:   cfg.SizeBuckets,
-		}, []string{cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+
 		httpRequestsInflight: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: cfg.Prefix,
 			Subsystem: "http",
 			Name:      "requests_inflight",
 			Help:      "The number of inflight requests being handled at the same time.",
-		}, []string{cfg.HandlerIDLabel}),
-
-		cfg: cfg,
+		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel}),
 	}
 
-	r.registerMetrics()
-
-	return r
-}
-
-func (r recorder) registerMetrics() {
-	r.cfg.Registry.MustRegister(
+	cfg.Registry.MustRegister(
 		r.httpRequestDurHistogram,
 		r.httpResponseSizeHistogram,
 		r.httpRequestsInflight,
 	)
+
+	return r
 }
 
-func (r recorder) ObserveHTTPRequestDuration(_ context.Context, id string, duration time.Duration, method, code string) {
-	r.httpRequestDurHistogram.WithLabelValues(id, method, code).Observe(duration.Seconds())
+func (r recorder) ObserveHTTPRequestDuration(_ context.Context, p metrics.HTTPReqProperties, duration time.Duration) {
+	r.httpRequestDurHistogram.WithLabelValues(p.Service, p.ID, p.Method, p.Code).Observe(duration.Seconds())
 }
 
-func (r recorder) ObserveHTTPResponseSize(_ context.Context, id string, sizeBytes int64, method, code string) {
-	r.httpResponseSizeHistogram.WithLabelValues(id, method, code).Observe(float64(sizeBytes))
+func (r recorder) ObserveHTTPResponseSize(_ context.Context, p metrics.HTTPReqProperties, sizeBytes int64) {
+	r.httpResponseSizeHistogram.WithLabelValues(p.Service, p.ID, p.Method, p.Code).Observe(float64(sizeBytes))
 }
 
-func (r recorder) AddInflightRequests(_ context.Context, id string, quantity int) {
-	r.httpRequestsInflight.WithLabelValues(id).Add(float64(quantity))
+func (r recorder) AddInflightRequests(_ context.Context, p metrics.HTTPProperties, quantity int) {
+	r.httpRequestsInflight.WithLabelValues(p.Service, p.ID).Add(float64(quantity))
 }

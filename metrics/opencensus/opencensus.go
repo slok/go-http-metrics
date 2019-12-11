@@ -30,6 +30,8 @@ type Config struct {
 	StatusCodeLabel string
 	// MethodLabel is the name that will be set to the method label, by default is `method`.
 	MethodLabel string
+	// ServiceLabel is the name that will be set to the service label, by default is `service`.
+	ServiceLabel string
 	// UnregisterViewsBeforeRegister will unregister the previous Recorder views before registering
 	// again. This is required on cases where multiple instances of recorder will be made due to how
 	// Opencensus is implemented (everything is at global state). Sadly this option is a kind of hack
@@ -58,6 +60,10 @@ func (c *Config) defaults() {
 	if c.MethodLabel == "" {
 		c.MethodLabel = "method"
 	}
+
+	if c.ServiceLabel == "" {
+		c.ServiceLabel = "service"
+	}
 }
 
 type recorder struct {
@@ -65,6 +71,7 @@ type recorder struct {
 	codeKey    tag.Key
 	methodKey  tag.Key
 	handlerKey tag.Key
+	serviceKey tag.Key
 
 	// Measures.
 	latencySecs   *stats.Float64Measure
@@ -112,6 +119,12 @@ func (r *recorder) createKeys(cfg Config) error {
 	}
 	r.handlerKey = handler
 
+	service, err := tag.NewKey(cfg.ServiceLabel)
+	if err != nil {
+		return err
+	}
+	r.serviceKey = service
+
 	return nil
 }
 
@@ -132,25 +145,25 @@ func (r *recorder) createMeasurements() {
 
 func (r recorder) registerViews(cfg Config) error {
 
-	// OpenCensus uses global states, sadly we can't have view insta
+	// OpenCensus uses global states, sadly we can't have view instance.
 	durationView := &view.View{
 		Name:        "http_request_duration_seconds",
 		Description: "The latency of the HTTP requests",
-		TagKeys:     []tag.Key{r.handlerKey, r.methodKey, r.codeKey},
+		TagKeys:     []tag.Key{r.serviceKey, r.handlerKey, r.methodKey, r.codeKey},
 		Measure:     r.latencySecs,
 		Aggregation: view.Distribution(cfg.DurationBuckets...),
 	}
 	sizeView := &view.View{
 		Name:        "http_response_size_bytes",
 		Description: "The size of the HTTP responses",
-		TagKeys:     []tag.Key{r.handlerKey, r.methodKey, r.codeKey},
+		TagKeys:     []tag.Key{r.serviceKey, r.handlerKey, r.methodKey, r.codeKey},
 		Measure:     r.sizeBytes,
 		Aggregation: view.Distribution(cfg.SizeBuckets...),
 	}
 	inflightView := &view.View{
 		Name:        "http_requests_inflight",
 		Description: "The number of inflight requests being handled at the same time",
-		TagKeys:     []tag.Key{r.handlerKey},
+		TagKeys:     []tag.Key{r.serviceKey, r.handlerKey},
 		Measure:     r.inflightCount,
 		Aggregation: view.Sum(),
 	}
@@ -168,30 +181,35 @@ func (r recorder) registerViews(cfg Config) error {
 	return nil
 }
 
-func (r recorder) ObserveHTTPRequestDuration(ctx context.Context, id string, duration time.Duration, method, code string) {
-	ctx, _ = tag.New(ctx,
-		tag.Upsert(r.handlerKey, id),
-		tag.Upsert(r.methodKey, method),
-		tag.Upsert(r.codeKey, code),
-	)
-
+func (r recorder) ObserveHTTPRequestDuration(ctx context.Context, p metrics.HTTPReqProperties, duration time.Duration) {
+	ctx = r.ctxWithTagFromHTTPReqProperties(ctx, p)
 	stats.Record(ctx, r.latencySecs.M(duration.Seconds()))
 }
 
-func (r recorder) ObserveHTTPResponseSize(ctx context.Context, id string, sizeBytes int64, method, code string) {
-	ctx, _ = tag.New(ctx,
-		tag.Upsert(r.handlerKey, id),
-		tag.Upsert(r.methodKey, method),
-		tag.Upsert(r.codeKey, code),
-	)
-
+func (r recorder) ObserveHTTPResponseSize(ctx context.Context, p metrics.HTTPReqProperties, sizeBytes int64) {
+	ctx = r.ctxWithTagFromHTTPReqProperties(ctx, p)
 	stats.Record(ctx, r.sizeBytes.M(sizeBytes))
 }
 
-func (r recorder) AddInflightRequests(ctx context.Context, id string, quantity int) {
-	ctx, _ = tag.New(ctx,
-		tag.Upsert(r.handlerKey, id),
-	)
-
+func (r recorder) AddInflightRequests(ctx context.Context, p metrics.HTTPProperties, quantity int) {
+	ctx = r.ctxWithTagFromHTTPProperties(ctx, p)
 	stats.Record(ctx, r.inflightCount.M(int64(quantity)))
+}
+
+func (r recorder) ctxWithTagFromHTTPReqProperties(ctx context.Context, p metrics.HTTPReqProperties) context.Context {
+	newCtx, _ := tag.New(ctx,
+		tag.Upsert(r.serviceKey, p.Service),
+		tag.Upsert(r.handlerKey, p.ID),
+		tag.Upsert(r.methodKey, p.Method),
+		tag.Upsert(r.codeKey, p.Code),
+	)
+	return newCtx
+}
+
+func (r recorder) ctxWithTagFromHTTPProperties(ctx context.Context, p metrics.HTTPProperties) context.Context {
+	newCtx, _ := tag.New(ctx,
+		tag.Upsert(r.serviceKey, p.Service),
+		tag.Upsert(r.handlerKey, p.ID),
+	)
+	return newCtx
 }

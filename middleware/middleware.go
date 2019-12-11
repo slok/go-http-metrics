@@ -17,6 +17,9 @@ import (
 type Config struct {
 	// Recorder is the way the metrics will be recorder in the different backends.
 	Recorder metrics.Recorder
+	// Service is an optional identifier for the metrics, this can be useful if
+	// a same service has multiple servers (e.g API, metrics and healthchecks).
+	Service string
 	// GroupedStatus will group the status label in the form of `\dxx`, for example,
 	// 200, 201, and 203 will have the label `code="2xx"`. This impacts on the cardinality
 	// of the metrics and also improves the performance of queries that are grouped by
@@ -86,8 +89,12 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 
 		// Measure inflights if required.
 		if !m.cfg.DisableMeasureInflight {
-			m.cfg.Recorder.AddInflightRequests(r.Context(), hid, 1)
-			defer m.cfg.Recorder.AddInflightRequests(r.Context(), hid, -1)
+			props := metrics.HTTPProperties{
+				Service: m.cfg.Service,
+				ID:      hid,
+			}
+			m.cfg.Recorder.AddInflightRequests(r.Context(), props, 1)
+			defer m.cfg.Recorder.AddInflightRequests(r.Context(), props, -1)
 		}
 
 		// Start the timer and when finishing measure the duration.
@@ -105,11 +112,17 @@ func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
 				code = strconv.Itoa(wi.statusCode)
 			}
 
-			m.cfg.Recorder.ObserveHTTPRequestDuration(r.Context(), hid, duration, r.Method, code)
+			props := metrics.HTTPReqProperties{
+				Service: m.cfg.Service,
+				ID:      hid,
+				Method:  r.Method,
+				Code:    code,
+			}
+			m.cfg.Recorder.ObserveHTTPRequestDuration(r.Context(), props, duration)
 
 			// Measure size of response if required.
 			if !m.cfg.DisableMeasureSize {
-				m.cfg.Recorder.ObserveHTTPResponseSize(r.Context(), hid, int64(wi.bytesWritten), r.Method, code)
+				m.cfg.Recorder.ObserveHTTPResponseSize(r.Context(), props, int64(wi.bytesWritten))
 			}
 
 		}()

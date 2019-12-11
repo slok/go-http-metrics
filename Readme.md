@@ -129,6 +129,10 @@ The factory options are the ones that are passed in the moment of creating the m
 
 This is the implementation of the metrics backend, by default it's a dummy recorder.
 
+#### Service
+
+This is an optional argument that can be used to set a specific service on all the middleware metrics, this is helpful when the service uses multiple middlewares on the same app, for example for the HTTP api server and the metrics server. This also gives the ability to use the same recorder with different middlewares.
+
 #### GroupedStatus
 
 Storing all the status codes could increase the cardinality of the metrics, usually this is not a common case because the used status codes by a service are not too much and are finite, but some services use a lot of different status codes, grouping the status on the `\dxx` form could impact the performance (in a good way) of the queries on Prometheus (as they are already aggregated), on the other hand it losses detail. For example the metrics code `code="401"`, `code="404"`, `code="403"` with this enabled option would end being `code="4xx"` label. By default is disabled.
@@ -163,7 +167,7 @@ DurationBuckets are the buckets used for the request duration histogram metric, 
 
 #### SizeBuckets
 
-This works the same as the `DurationBuckets` but for the metric that measures the size of the responses. It's measured in bytes and by default goes form 1B to 1GB.
+This works the same as the `DurationBuckets` but for the metric that measures the size of the responses. It's measured in bytes and by default goes from 1B to 1GB.
 
 #### Registry
 
