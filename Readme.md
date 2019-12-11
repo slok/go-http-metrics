@@ -1,8 +1,8 @@
 # go-http-metrics [![Build Status][github-actions-image]][github-actions-url] [![Go Report Card][goreport-image]][goreport-url] [![GoDoc][godoc-image]][godoc-url]
 
-go-http-metrics knows how to measure http metrics in different metric formats, it comes with a middleware that will measure metrics of a Go net/http handler. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
+go-http-metrics knows how to measure http metrics in different metric formats. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
 
-If you are using a framework that isn't directly compatible with go's `http.Handler` interface from the std library, do not worry, there are multiple helpers available to get middlewares fo the most used http Go frameworks. If there isn't you can open an issue or a PR.
+It measures based on a middleware that is compatible with Go core net/http handler, if you are using a framework that isn't directly compatible with go's `http.Handler` interface, do not worry, there are multiple helpers available to get middlewares for the most used http Go frameworks. If there isn't you can open an issue or a PR.
 
 ## Table of contents
 
