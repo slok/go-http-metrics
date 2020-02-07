@@ -17,7 +17,7 @@ import (
 
 func getTestHandler(statusCode int) gorestful.RouteFunction {
 	return gorestful.RouteFunction(func(_ *gorestful.Request, resp *gorestful.Response) {
-		resp.WriteHeaderAndEntity(statusCode, "Hello world")
+		_ = resp.WriteHeaderAndEntity(statusCode, "Hello world")
 	})
 }
 

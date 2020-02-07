@@ -1,18 +1,35 @@
 name: CI
+
 on: [push]
+
 jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+      - name: Get golangci
+        run: |
+          # Add go binaries to GOPATH.
+          # FIX: https://github.com/actions/setup-go/issues/14
+          export PATH=${PATH}:`go env GOPATH`/bin
+          go get -u github.com/golangci/golangci-lint/...
+      - uses: actions/checkout@v1
+      - name: check
+        run: |
+          # Add go binaries to GOPATH.
+          # FIX: https://github.com/actions/setup-go/issues/14
+          export PATH=${PATH}:`go env GOPATH`/bin
+          make check
+
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v1
+      - uses: actions/checkout@v1
+      - uses: actions/setup-go@v1
         with:
           go-version: 1.13
-        id: go
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v1
-
-      - name: Test
-        run: make ci
+      - run: make test

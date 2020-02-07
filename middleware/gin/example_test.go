@@ -31,7 +31,9 @@ func Example_ginMiddleware() {
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")
-	go http.ListenAndServe(":8081", promhttp.Handler())
+	go func() {
+		_ = http.ListenAndServe(":8081", promhttp.Handler())
+	}()
 
 	// Serve our handler.
 	log.Printf("listening at: %s", ":8080")
