@@ -47,6 +47,9 @@ func (w *ginResponseWriter) WriteHeader(statusCode int) {
 }
 
 func (w *ginResponseWriter) Write(p []byte) (int, error) {
-	w.middlewareRW.Write(p)
+	b, err := w.middlewareRW.Write(p)
+	if err != nil {
+		return b, err
+	}
 	return w.ResponseWriter.Write(p)
 }

@@ -20,7 +20,7 @@ func Example_httprouterMiddlewareByHandler() {
 	myHandler := func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		id := p.ByName("id")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("hello world! " + id))
+		_, _ = w.Write([]byte("hello world! " + id))
 	}
 
 	// Create our router.
@@ -36,7 +36,9 @@ func Example_httprouterMiddlewareByHandler() {
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")
-	go http.ListenAndServe(":8081", promhttp.Handler())
+	go func() {
+		_ = http.ListenAndServe(":8081", promhttp.Handler())
+	}()
 
 	// Serve our handler.
 	log.Printf("listening at: %s", ":8080")
@@ -52,7 +54,7 @@ func Example_httprouterMiddlewareOnRouter() {
 	myHandler := func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		id := p.ByName("id")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("hello world! " + id))
+		_, _ = w.Write([]byte("hello world! " + id))
 	}
 
 	// Create our router and add the middleware.
@@ -68,7 +70,9 @@ func Example_httprouterMiddlewareOnRouter() {
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")
-	go http.ListenAndServe(":8081", promhttp.Handler())
+	go func() {
+		_ = http.ListenAndServe(":8081", promhttp.Handler())
+	}()
 
 	// Wrap the router with the middleware.
 	h := mdlw.Handler("", r)

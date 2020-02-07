@@ -18,7 +18,7 @@ func Example_negroniMiddleware() {
 	// Create our handler.
 	myHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("hello world!"))
+		_, _ = w.Write([]byte("hello world!"))
 	})
 
 	// Create our negroni instance.
@@ -36,7 +36,9 @@ func Example_negroniMiddleware() {
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")
-	go http.ListenAndServe(":8081", promhttp.Handler())
+	go func() {
+		_ = http.ListenAndServe(":8081", promhttp.Handler())
+	}()
 
 	// Serve our handler.
 	log.Printf("listening at: %s", ":8080")

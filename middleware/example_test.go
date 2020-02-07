@@ -22,7 +22,7 @@ func ExampleMiddleware_prometheusBackendMiddleware() {
 	// Create our handler.
 	myHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("hello world!"))
+		_, _ = w.Write([]byte("hello world!"))
 	})
 
 	// Wrap our handler with the middleware.
@@ -30,7 +30,9 @@ func ExampleMiddleware_prometheusBackendMiddleware() {
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")
-	go http.ListenAndServe(":8081", promhttp.Handler())
+	go func() {
+		_ = http.ListenAndServe(":8081", promhttp.Handler())
+	}()
 
 	// Serve our handler.
 	log.Printf("listening at: %s", ":8080")

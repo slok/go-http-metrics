@@ -2,6 +2,7 @@
 UNIT_TEST_CMD := go test `go list ./... | grep -v vendor` -race -v
 INTEGRATION_TEST_CMD := go test `go list ./... | grep -v vendor`  -race -v -tags='integration'
 BENCHMARK_CMD := go test `go list ./... | grep -v vendor` -benchmem -bench=.
+CHECK_CMD = golangci-lint run -E goimports
 DEPS_CMD := go mod tidy
 MOCKS_CMD := go generate ./internal/mocks
 
@@ -11,9 +12,11 @@ default: test
 .PHONY: unit-test
 unit-test:
 	$(UNIT_TEST_CMD)
+
 .PHONY: integration-test
 integration-test:
 	$(INTEGRATION_TEST_CMD)
+
 .PHONY: test
 test: integration-test
 
@@ -21,8 +24,9 @@ test: integration-test
 benchmark:
 	$(BENCHMARK_CMD)
 
-.PHONY: ci
-ci: test
+.PHONY: check
+check: 
+	$(CHECK_CMD)
 
 .PHONY: deps
 deps:
