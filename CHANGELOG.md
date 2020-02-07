@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.1] - 2020-02-07
+
 ### Changed
 
 - Internal response writer interceptor implements `http.Hijacker` and `http.Flusher` interface.
