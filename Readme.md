@@ -42,6 +42,7 @@ The middleware is mainly focused to be compatible with Go std library using http
 - [httprouter][httprouter-example]
 - [go-restful][gorestful-example]
 - [Gin][gin-example]
+- [Echo][echo-example]
 
 ## Getting Started
 
@@ -223,5 +224,6 @@ BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4     	 1000000	
 [httprouter-example]: examples/httprouter
 [gorestful-example]: examples/gorestful
 [gin-example]: examples/gin
+[echo-example]: examples/echo
 [prometheus-recorder]: metrics/prometheus
 [opencensus-recorder]: metrics/opencensus

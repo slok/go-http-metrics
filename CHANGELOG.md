@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- New middleware helper for the Echo framework
+
 ## [0.6.1] - 2020-02-07
 
 ### Changed
