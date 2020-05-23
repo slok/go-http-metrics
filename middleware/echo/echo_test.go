@@ -64,7 +64,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 			mr.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
 			mr.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
 
-			// Create our negroni instance with the middleware.
+			// Create our echo instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			e := echo.New()
 			e.POST("/test", getTestHandler(test.statusCode), echoMiddleware.Handler("", mdlw))
