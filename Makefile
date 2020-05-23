@@ -1,6 +1,6 @@
 
-UNIT_TEST_CMD := go test `go list ./... | grep -v vendor` -race -v
-INTEGRATION_TEST_CMD := go test `go list ./... | grep -v vendor`  -race -v -tags='integration'
+UNIT_TEST_CMD := go test `go list ./... | grep -v vendor` -race
+INTEGRATION_TEST_CMD := go test `go list ./... | grep -v vendor` -race -tags='integration'
 BENCHMARK_CMD := go test `go list ./... | grep -v vendor` -benchmem -bench=.
 CHECK_CMD = golangci-lint run -E goimports
 DEPS_CMD := go mod tidy

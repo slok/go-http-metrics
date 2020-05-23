@@ -6,23 +6,11 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
+    # Execute the checks inside the contianer instead the VM.
+    container: golangci/golangci-lint:v1.27.0-alpine
     steps:
-      - uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-      - name: Get golangci
-        run: |
-          # Add go binaries to GOPATH.
-          # FIX: https://github.com/actions/setup-go/issues/14
-          export PATH=${PATH}:`go env GOPATH`/bin
-          go get -u github.com/golangci/golangci-lint/...
       - uses: actions/checkout@v1
-      - name: check
-        run: |
-          # Add go binaries to GOPATH.
-          # FIX: https://github.com/actions/setup-go/issues/14
-          export PATH=${PATH}:`go env GOPATH`/bin
-          make check
+      - run: golangci-lint run -E goimports
 
   test:
     name: Test
@@ -31,5 +19,5 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.14
       - run: make test
