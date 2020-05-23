@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	srvAddr     = ":8082"
+	srvAddr     = ":8080"
 	metricsAddr = ":8081"
 )
 
