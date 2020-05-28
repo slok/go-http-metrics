@@ -1,15 +1,12 @@
-// Package middleware will measure metrics of a Go net/http
-// handler using a `metrics.Recorder`.
-// The metrics measured are based on RED and/or Four golden signals and
-// try to be measured in a efficient way.
+// Package middleware will measure metrics of different http handler types
+// using a `metrics.Recorder`.
+//
+// The metrics measured are based on RED and/or Four golden signals.
 package middleware
 
 import (
-	"bufio"
-	"errors"
+	"context"
 	"fmt"
-	"net"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -37,141 +34,95 @@ type Config struct {
 	DisableMeasureInflight bool
 }
 
-func (c *Config) validate() {
+func (c *Config) defaults() {
 	if c.Recorder == nil {
 		c.Recorder = metrics.Dummy
 	}
 }
 
-// Middleware is a factory that creates middlewares or wrappers that
-// measure requests to the wrapped handler using different metrics
-// backends using a `metrics.Recorder` implementation.
-type Middleware interface {
-	// Handler wraps the received handler with the Prometheus middleware.
-	// The first argument receives the handlerID, all the metrics will have
-	// that handler ID as the handler label on the metrics, if an empty
-	// string is passed then it will get the handlerID from the request
-	// path.
-	Handler(handlerID string, h http.Handler) http.Handler
-}
-
-// middelware is the prometheus middleware instance.
-type middleware struct {
+// Middleware is a service that knows how to measure an HTTP handler by wrapping
+// another handler.
+//
+// Depending on the framework/library we want to measure, this can change a lot,
+// to abstract the way how we measure on the different libraries, Middleware will
+// recieve a `Reporter` that knows how to get the data the Middleware service needs
+// to measure.
+type Middleware struct {
 	cfg Config
 }
 
-// New returns the a Middleware factory.
+// New returns the a Middleware service.
 func New(cfg Config) Middleware {
-	// Validate the configuration.
-	cfg.validate()
+	cfg.defaults()
 
-	// Create our middleware with all the configuration options.
-	m := &middleware{
-		cfg: cfg,
-	}
+	m := Middleware{cfg: cfg}
 
 	return m
 }
 
-// Handler satisfies Middleware interface.
-func (m *middleware) Handler(handlerID string, h http.Handler) http.Handler {
+// Measure abstracts the HTTP handler implementation by only requesting a reporter, this
+// reporter will return the required data to be measured.
+// it accepts a next function that will be called as the wrapped logic before and after
+// measurement actions.
+func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
+	ctx := reporter.Context()
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Intercept the writer so we can retrieve data afterwards.
-		wi := &responseWriterInterceptor{
-			statusCode:     http.StatusOK,
-			ResponseWriter: w,
-		}
-
-		// If there isn't predefined handler ID we
-		// set that ID as the URL path.
-		hid := handlerID
-		if handlerID == "" {
-			hid = r.URL.Path
-		}
-
-		// Measure inflights if required.
-		if !m.cfg.DisableMeasureInflight {
-			props := metrics.HTTPProperties{
-				Service: m.cfg.Service,
-				ID:      hid,
-			}
-			m.cfg.Recorder.AddInflightRequests(r.Context(), props, 1)
-			defer m.cfg.Recorder.AddInflightRequests(r.Context(), props, -1)
-		}
-
-		// Start the timer and when finishing measure the duration.
-		start := time.Now()
-		defer func() {
-			duration := time.Since(start)
-
-			// If we need to group the status code, it uses the
-			// first number of the status code because is the least
-			// required identification way.
-			var code string
-			if m.cfg.GroupedStatus {
-				code = fmt.Sprintf("%dxx", wi.statusCode/100)
-			} else {
-				code = strconv.Itoa(wi.statusCode)
-			}
-
-			props := metrics.HTTPReqProperties{
-				Service: m.cfg.Service,
-				ID:      hid,
-				Method:  r.Method,
-				Code:    code,
-			}
-			m.cfg.Recorder.ObserveHTTPRequestDuration(r.Context(), props, duration)
-
-			// Measure size of response if required.
-			if !m.cfg.DisableMeasureSize {
-				m.cfg.Recorder.ObserveHTTPResponseSize(r.Context(), props, int64(wi.bytesWritten))
-			}
-
-		}()
-
-		h.ServeHTTP(wi, r)
-	})
-}
-
-// responseWriterInterceptor is a simple wrapper to intercept set data on a
-// ResponseWriter.
-type responseWriterInterceptor struct {
-	http.ResponseWriter
-	statusCode   int
-	bytesWritten int
-}
-
-func (w *responseWriterInterceptor) WriteHeader(statusCode int) {
-	w.statusCode = statusCode
-	w.ResponseWriter.WriteHeader(statusCode)
-}
-
-func (w *responseWriterInterceptor) Write(p []byte) (int, error) {
-	w.bytesWritten += len(p)
-	return w.ResponseWriter.Write(p)
-}
-
-func (w *responseWriterInterceptor) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	h, ok := w.ResponseWriter.(http.Hijacker)
-	if !ok {
-		return nil, nil, errors.New("type assertion failed http.ResponseWriter not a http.Hijacker")
-	}
-	return h.Hijack()
-}
-
-func (w *responseWriterInterceptor) Flush() {
-	f, ok := w.ResponseWriter.(http.Flusher)
-	if !ok {
-		return
+	// If there isn't predefined handler ID we
+	// set that ID as the URL path.
+	hid := handlerID
+	if handlerID == "" {
+		hid = reporter.URLPath()
 	}
 
-	f.Flush()
+	// Measure inflights if required.
+	if !m.cfg.DisableMeasureInflight {
+		props := metrics.HTTPProperties{
+			Service: m.cfg.Service,
+			ID:      hid,
+		}
+		m.cfg.Recorder.AddInflightRequests(ctx, props, 1)
+		defer m.cfg.Recorder.AddInflightRequests(ctx, props, -1)
+	}
+
+	// Start the timer and when finishing measure the duration.
+	start := time.Now()
+	defer func() {
+		duration := time.Since(start)
+
+		// If we need to group the status code, it uses the
+		// first number of the status code because is the least
+		// required identification way.
+		var code string
+		if m.cfg.GroupedStatus {
+			code = fmt.Sprintf("%dxx", reporter.StatusCode()/100)
+		} else {
+			code = strconv.Itoa(reporter.StatusCode())
+		}
+
+		props := metrics.HTTPReqProperties{
+			Service: m.cfg.Service,
+			ID:      hid,
+			Method:  reporter.Method(),
+			Code:    code,
+		}
+		m.cfg.Recorder.ObserveHTTPRequestDuration(ctx, props, duration)
+
+		// Measure size of response if required.
+		if !m.cfg.DisableMeasureSize {
+			m.cfg.Recorder.ObserveHTTPResponseSize(ctx, props, reporter.BytesWritten())
+		}
+	}()
+
+	// Call the wrapped logic.
+	next()
 }
 
-// Check interface implementations.
-var (
-	_ http.ResponseWriter = &responseWriterInterceptor{}
-	_ http.Hijacker       = &responseWriterInterceptor{}
-	_ http.Flusher        = &responseWriterInterceptor{}
-)
+// Reporter knows how to report the data to the Middleware so it can measure the
+// different framework/libraries.
+type Reporter interface {
+	Method() string
+	Context() context.Context
+	URLPath() string
+	StatusCode() int
+	BytesWritten() int64
+}

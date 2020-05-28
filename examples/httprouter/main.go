@@ -46,9 +46,9 @@ func main() {
 	r := httprouter.New()
 
 	// Add the middleware to each route.
-	r.GET("/", httproutermiddleware.Handler("/", h, mdlw))
-	r.GET("/test/:id", httproutermiddleware.Handler("/test/:id", h1, mdlw))
-	r.GET("/test2/:id", httproutermiddleware.Handler("/test2/:id", h2, mdlw))
+	r.GET("/", httproutermiddleware.Measure("/", h, mdlw))
+	r.GET("/test/:id", httproutermiddleware.Measure("/test/:id", h1, mdlw))
+	r.GET("/test2/:id", httproutermiddleware.Measure("/test2/:id", h2, mdlw))
 
 	// Serve our handler.
 	go func() {

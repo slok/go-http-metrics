@@ -22,8 +22,7 @@ func getTestHandler(statusCode int) gorestful.RouteFunction {
 }
 
 func TestMiddlewareIntegration(t *testing.T) {
-	tests := []struct {
-		name          string
+	tests := map[string]struct {
 		handlerID     string
 		statusCode    int
 		req           *http.Request
@@ -33,8 +32,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 		expMethod     string
 		expStatusCode string
 	}{
-		{
-			name:          "A default HTTP middleware should call the recorder to measure.",
+		"A default HTTP middleware should call the recorder to measure.": {
 			statusCode:    http.StatusAccepted,
 			req:           httptest.NewRequest(http.MethodPost, "/test", nil),
 			expHandlerID:  "/test",
@@ -43,8 +41,8 @@ func TestMiddlewareIntegration(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
 			assert := assert.New(t)
 
 			// Mocks.
@@ -67,7 +65,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 			// Create our instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			c := gorestful.NewContainer()
-			c.Filter(gorestfulmiddleware.Handler("", mdlw))
+			c.Filter(gorestfulmiddleware.Measure("", mdlw))
 			ws := &gorestful.WebService{}
 			ws.Produces(gorestful.MIME_JSON)
 			ws.Route(ws.POST("/test").To(getTestHandler(test.statusCode)))

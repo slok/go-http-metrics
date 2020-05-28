@@ -3,53 +3,33 @@
 package gin
 
 import (
-	"net/http"
+	"context"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/slok/go-http-metrics/middleware"
 )
 
-// Handler returns a Gin compatible middleware from a Middleware factory instance.
-// The first handlerID argument is the same argument passed on Middleware.Handler method.
-func Handler(handlerID string, m middleware.Middleware) gin.HandlerFunc {
-	// Create a dummy handler to wrap the middleware chain of Gin, this way Middleware
-	// interface can wrap the Gin chain.
+// Measure returns a Gin measure middleware.
+func Measure(handlerID string, m middleware.Middleware) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			c.Writer = &ginResponseWriter{
-				ResponseWriter: c.Writer,
-				middlewareRW:   w,
-			}
+		r := &reporter{c: c}
+		m.Measure(handlerID, r, func() {
 			c.Next()
 		})
-		m.Handler(handlerID, h).ServeHTTP(c.Writer, c.Request)
 	}
 }
 
-// ginResponseWriter is a helper type that intercepts the middleware ResponseWriter
-// interceptor.
-// This is required because gin's context Writer (c.Writer) is a gin.ResponseWriter
-// interface and we can't access to the internal object http.ResponseWriter, so
-// we already know that our middleware intercepts the regular http.ResponseWriter,
-// and doesn't change anything, just intercepts to read information. So in order to
-// get this information on our interceptor we create a gin.ResponseWriter implementation
-// that will call the real gin.Context.Writer and our interceptor. This way Gin gets the
-// information and our interceptor also.
-type ginResponseWriter struct {
-	middlewareRW http.ResponseWriter
-	gin.ResponseWriter
+type reporter struct {
+	c *gin.Context
 }
 
-func (w *ginResponseWriter) WriteHeader(statusCode int) {
-	w.middlewareRW.WriteHeader(statusCode)
-	w.ResponseWriter.WriteHeader(statusCode)
-}
+func (r *reporter) Method() string { return r.c.Request.Method }
 
-func (w *ginResponseWriter) Write(p []byte) (int, error) {
-	b, err := w.middlewareRW.Write(p)
-	if err != nil {
-		return b, err
-	}
-	return w.ResponseWriter.Write(p)
-}
+func (r *reporter) Context() context.Context { return r.c.Request.Context() }
+
+func (r *reporter) URLPath() string { return r.c.Request.URL.Path }
+
+func (r *reporter) StatusCode() int { return r.c.Writer.Status() }
+
+func (r *reporter) BytesWritten() int64 { return int64(r.c.Writer.Size()) }
