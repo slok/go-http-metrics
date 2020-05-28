@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-Breaking change. The library has been refactored to me more flexible when adding new framework/libraries.
+Breaking change. The library has been refactored to be more flexible when adding new framework/libraries.
 
 ### Added
 

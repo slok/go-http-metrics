@@ -1,41 +1,46 @@
 
-UNIT_TEST_CMD := go test `go list ./... | grep -v vendor` -race
-INTEGRATION_TEST_CMD := go test `go list ./... | grep -v vendor` -race -tags='integration'
+UNIT_TEST_CMD := go test `go list ./... | grep -v test\/integration` -race
+INTEGRATION_TEST_CMD := go test ./test/integration -race -tags='integration'
 BENCHMARK_CMD := go test `go list ./... | grep -v vendor` -benchmem -bench=.
 CHECK_CMD = golangci-lint run -E goimports
 DEPS_CMD := go mod tidy
 MOCKS_CMD := go generate ./internal/mocks
 
+help: ## Show this help.
+	@echo "Help"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[36m%-20s\033[93m %s\n", $$1, $$2}'
+
+
 .PHONY: default
 default: test
 
 .PHONY: unit-test
-unit-test:
+unit-test: ## Execute unit tests.
 	$(UNIT_TEST_CMD)
 
 .PHONY: integration-test
-integration-test:
+integration-test: ## Execute unit tests.
 	$(INTEGRATION_TEST_CMD)
 
-.PHONY: test
-test: integration-test
+.PHONY: test ## Alias for unit tests.
+test: unit-test
 
 .PHONY: benchmark
-benchmark:
+benchmark: ## Execute benchmarks.
 	$(BENCHMARK_CMD)
 
 .PHONY: check
-check: 
+check: ## Execute check.
 	$(CHECK_CMD)
 
 .PHONY: deps
-deps:
+deps: ## Tidy dependencies.
 	$(DEPS_CMD)
 
 .PHONY: mocks
-mocks:
+mocks: ## Generates mocks.
 	$(MOCKS_CMD)
 
 .PHONY: docs
-docs: 
+docs: ## Runs docs example on :6060.
 	godoc -http=":6060"

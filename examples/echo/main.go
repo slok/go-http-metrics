@@ -12,7 +12,7 @@ import (
 
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
-	echoMiddleware "github.com/slok/go-http-metrics/middleware/echo"
+	echomiddleware "github.com/slok/go-http-metrics/middleware/echo"
 )
 
 const (
@@ -28,7 +28,7 @@ func main() {
 
 	// Create Echo instance and global middleware.
 	e := echo.New()
-	e.Use(echoMiddleware.Measure("", mdlw))
+	e.Use(echomiddleware.Measure("", mdlw))
 
 	// Add our handler.
 	e.GET("/", func(c echo.Context) error {
