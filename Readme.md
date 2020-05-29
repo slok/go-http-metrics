@@ -86,6 +86,67 @@ func main() {
 
 For more examples check the [examples]. [default][default-example] and [custom][custom-example] are the examples for Go net/http std library users.
 
+## V1 migration
+
+From `v0` to `v1` the middleware API has changed (not the metrics API or metric implementations).
+
+This changes was because `v0` started with `http.Handler` in mind, but then the support for some libs/middlwares were implemented, the way these frameworks/libraries are designed itself, are not compatible with go's `http.Handler`, but we want to support these and many more. So to be able to support these correctly and many more,an internal big refactor was required, this lead us to the need to leak a little bit of this internal refactor.
+
+Here is how you can migrate the standard `http.Handler` from one to another (the other framework/lib migrations are straignforward).
+
+Before:
+
+```go
+package main
+
+import (
+    metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+    "github.com/slok/go-http-metrics/middleware"
+)
+
+func main() {
+    // Create our middleware.
+    mdlw := middleware.New(middleware.Config{
+        Recorder: metrics.NewRecorder(metrics.Config{}),
+    })
+
+    myHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte("hello world!"))
+    })
+
+    // Measure handler.
+    h := mdlw.Handler("", myHandler)
+}
+```
+
+After:
+
+```go
+package main
+
+import (
+    metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+    "github.com/slok/go-http-metrics/middleware"
+    middlewarestd "github.com/slok/go-http-metrics/middleware/std"
+)
+
+func main() {
+    // Create our middleware.
+    mdlw := middleware.New(middleware.Config{
+        Recorder: metrics.NewRecorder(metrics.Config{}),
+    })
+
+    myHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte("hello world!"))
+    })
+
+    // Measure handler.
+    h := middlewarestd.Measure("", mdlw, myHandler)
+}
+```
+
 ## Prometheus query examples
 
 Get the request rate by handler:

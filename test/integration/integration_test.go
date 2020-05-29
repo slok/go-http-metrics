@@ -124,9 +124,8 @@ func testMiddlewarePrometheusMetrics(t *testing.T, h http.Handler, expMetrics []
 }
 
 func prepareHandlerSTD(m middleware.Middleware, hc []handlerConfig) http.Handler {
-	mux := http.NewServeMux()
-
 	// Setup handlers.
+	mux := http.NewServeMux()
 	for _, h := range hc {
 		h := h
 		mux.Handle(h.Path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -142,13 +141,15 @@ func prepareHandlerSTD(m middleware.Middleware, hc []handlerConfig) http.Handler
 		}))
 	}
 
-	return stdmiddleware.Measure("", m, mux)
+	// Setup server and middleware.
+	h := stdmiddleware.Measure("", m, mux)
+
+	return h
 }
 
 func prepareHandlerNegroni(m middleware.Middleware, hc []handlerConfig) http.Handler {
-	mux := http.NewServeMux()
-
 	// Setup handlers.
+	mux := http.NewServeMux()
 	for _, h := range hc {
 		h := h
 		mux.Handle(h.Path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -164,6 +165,7 @@ func prepareHandlerNegroni(m middleware.Middleware, hc []handlerConfig) http.Han
 		}))
 	}
 
+	// Setup server and middleware.
 	n := negroni.Classic()
 	n.Use(negronimiddleware.Measure("", m))
 	n.UseHandler(mux)
@@ -184,7 +186,7 @@ func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) http.
 			w.Write([]byte(h.ReturnData))
 		}
 
-		// Measure for each handler.
+		// Setup middleware on each of the routes.
 		r.Handle(h.Method, h.Path, httproutermiddleware.Measure("", hr, m))
 	}
 
@@ -192,8 +194,8 @@ func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) http.
 }
 
 func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) http.Handler {
+	// Setup server and middleware.
 	c := gorestful.NewContainer()
-
 	c.Filter(gorestfulmiddleware.Measure("", m))
 
 	// Setup handlers.
@@ -213,9 +215,11 @@ func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) http.H
 }
 
 func prepareHandlerGin(m middleware.Middleware, hc []handlerConfig) http.Handler {
+	// Setup server and middleware.
 	e := gin.New()
 	e.Use(ginmiddleware.Measure("", m))
 
+	// Setup handlers.
 	for _, h := range hc {
 		h := h
 		e.Handle(h.Method, h.Path, func(c *gin.Context) {
@@ -228,9 +232,11 @@ func prepareHandlerGin(m middleware.Middleware, hc []handlerConfig) http.Handler
 }
 
 func prepareHandlerEcho(m middleware.Middleware, hc []handlerConfig) http.Handler {
+	// Setup server and middleware.
 	e := echo.New()
 	e.Use(echomiddleware.Measure("", m))
 
+	// Setup handlers.
 	for _, h := range hc {
 		h := h
 		e.Add(h.Method, h.Path, func(c echo.Context) error {
