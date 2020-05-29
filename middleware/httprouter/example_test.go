@@ -10,6 +10,7 @@ import (
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 	httproutermiddleware "github.com/slok/go-http-metrics/middleware/httprouter"
+	stdmiddleware "github.com/slok/go-http-metrics/middleware/std"
 )
 
 // HTTPRouterMiddlewareByHandler shows how you would create a default middleware factory
@@ -31,8 +32,8 @@ func Example_httprouterMiddlewareByHandler() {
 		Recorder: metrics.NewRecorder(metrics.Config{}),
 	})
 	// Add the middleware.
-	r.GET("/test/:id", httproutermiddleware.Handler("/test/:id", myHandler, mdlw))
-	r.GET("/test2/:id", httproutermiddleware.Handler("/test2/:id", myHandler, mdlw))
+	r.GET("/test/:id", httproutermiddleware.Measure("/test/:id", myHandler, mdlw))
+	r.GET("/test2/:id", httproutermiddleware.Measure("/test2/:id", myHandler, mdlw))
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")
@@ -75,7 +76,7 @@ func Example_httprouterMiddlewareOnRouter() {
 	}()
 
 	// Wrap the router with the middleware.
-	h := mdlw.Handler("", r)
+	h := stdmiddleware.Measure("", mdlw, r)
 
 	// Serve our handler.
 	log.Printf("listening at: %s", ":8080")

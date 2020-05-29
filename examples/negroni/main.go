@@ -36,7 +36,7 @@ func main() {
 	n := negroni.Classic()
 
 	// Add the middleware to negroni.
-	n.Use(negronimiddleware.Handler("", mdlw))
+	n.Use(negronimiddleware.Measure("", mdlw))
 
 	// Finally set our router on negroni.
 	n.UseHandler(mux)

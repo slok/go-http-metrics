@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
+	"github.com/slok/go-http-metrics/middleware/std"
 )
 
 const (
@@ -50,10 +51,10 @@ func main() {
 	// Wrape our middleware on each of the different handlers with the ID of the handler
 	// this way we reduce the cardinality, for example: `/test/2` and `/test/4` will
 	// have the same `handler` label on the metric: `/test/:testID`
-	mux.Handle("/", mdlw.Handler("/", rooth))
-	mux.Handle("/test/1", mdlw.Handler("/test/:testID", testh))
-	mux.Handle("/test/2", mdlw.Handler("/test/:testID", testh2))
-	mux.Handle("/other-test", mdlw.Handler("/other-test", othetesth))
+	mux.Handle("/", std.Measure("/", mdlw, rooth))
+	mux.Handle("/test/1", std.Measure("/test/:testID", mdlw, testh))
+	mux.Handle("/test/2", std.Measure("/test/:testID", mdlw, testh2))
+	mux.Handle("/other-test", std.Measure("/other-test", mdlw, othetesth))
 
 	// Serve our handler.
 	go func() {

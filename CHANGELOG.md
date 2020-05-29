@@ -2,9 +2,23 @@
 
 ## [Unreleased]
 
+Breaking change. The library has been refactored to be more flexible when adding new framework/libraries.
+
 ### Added
 
-- New middleware helper for the Echo framework
+- New middleware helper for the Echo framework.
+
+### Changed
+
+- Refactored internally how the Middleware works and gets the data to make it easier to extend and more reliable.
+  - Added `Reporter` interface as the service responsible of getting the data to be measured.
+  - All different framwork helpers now implement with the new Reporter way.
+- Fixed Gin returning duplicated data (#31).
+- Standard handler now is on `middleware/std` instead of `middleware`.
+
+### Removed
+
+- Middleware interface in favor of a struct.
 
 ## [0.6.1] - 2020-02-07
 

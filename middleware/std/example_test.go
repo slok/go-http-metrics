@@ -1,19 +1,19 @@
-package middleware_test
+package std_test
 
 import (
 	"log"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
+	stdmiddleware "github.com/slok/go-http-metrics/middleware/std"
 )
 
-// PrometheusBackendMiddleware shows how you would create a middleware factory for standard
-// go library `http.Handler` and wrap a handler to measure with the default settings using
-// Prometheus as the metrics recorder backend, the Prometheus will use the default settings
-// so it will measure using the default Prometheus registry.
-func ExampleMiddleware_prometheusBackendMiddleware() {
+// NegroniMiddleware shows how you would create a default middleware factory and use it
+// to create a standdard `http.Handler` compatible middleware.
+func Example_stdMiddleware() {
 	// Create our middleware factory with the default settings.
 	mdlw := middleware.New(middleware.Config{
 		Recorder: metrics.NewRecorder(metrics.Config{}),
@@ -26,7 +26,7 @@ func ExampleMiddleware_prometheusBackendMiddleware() {
 	})
 
 	// Wrap our handler with the middleware.
-	h := mdlw.Handler("", myHandler)
+	h := stdmiddleware.Measure("", mdlw, myHandler)
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")
