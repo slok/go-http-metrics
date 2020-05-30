@@ -9,8 +9,8 @@ import (
 	"github.com/slok/go-http-metrics/middleware"
 )
 
-// Measure returns a Echo measure middleware.
-func Measure(handlerID string, m middleware.Middleware) echo.MiddlewareFunc {
+// Handler returns a Echo measuring middleware.
+func Handler(handlerID string, m middleware.Middleware) echo.MiddlewareFunc {
 	return func(h echo.HandlerFunc) echo.HandlerFunc {
 		return echo.HandlerFunc(func(c echo.Context) error {
 			r := &reporter{c: c}

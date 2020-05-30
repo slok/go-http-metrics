@@ -27,7 +27,7 @@ func Example_ginMiddleware() {
 	h := func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello world")
 	}
-	engine.GET("/", ginmiddleware.Measure("", mdlw), h)
+	engine.GET("/", ginmiddleware.Handler("", mdlw), h)
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")

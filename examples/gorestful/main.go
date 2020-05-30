@@ -29,7 +29,7 @@ func main() {
 	c := gorestful.NewContainer()
 
 	// Add the middleware for all routes.
-	c.Filter(gorestfulmiddleware.Measure("", mdlw))
+	c.Filter(gorestfulmiddleware.Handler("", mdlw))
 
 	// Add our handler.
 	ws := &gorestful.WebService{}

@@ -10,8 +10,8 @@ import (
 	"github.com/slok/go-http-metrics/middleware"
 )
 
-// Measure returns a Gin measure middleware.
-func Measure(handlerID string, m middleware.Middleware) gin.HandlerFunc {
+// Handler returns a Gin measuring middleware.
+func Handler(handlerID string, m middleware.Middleware) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r := &reporter{c: c}
 		m.Measure(handlerID, r, func() {

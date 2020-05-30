@@ -20,7 +20,7 @@ func getFakeHandler(statusCode int, responseBody string) http.Handler {
 	})
 }
 
-func TestMiddlewareIntegraation(t *testing.T) {
+func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
 		handlerID     string
 		body          string
@@ -101,7 +101,7 @@ func TestMiddlewareIntegraation(t *testing.T) {
 			// Make the request.
 			test.config.Recorder = mr
 			m := middleware.New(test.config)
-			h := stdmiddleware.Measure(test.handlerID, m, getFakeHandler(test.statusCode, test.body))
+			h := stdmiddleware.Handler(test.handlerID, m, getFakeHandler(test.statusCode, test.body))
 			h.ServeHTTP(httptest.NewRecorder(), test.req)
 
 			mr.AssertExpectations(t)

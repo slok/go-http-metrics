@@ -21,7 +21,7 @@ func getTestHandler(statusCode int) httprouter.Handle {
 	})
 }
 
-func TestMiddlewareIntegration(t *testing.T) {
+func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
 		handlerID     string
 		statusCode    int
@@ -65,7 +65,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 			// Create our instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			r := httprouter.New()
-			r.POST("/test", httproutermiddleware.Measure("", getTestHandler(test.statusCode), mdlw))
+			r.POST("/test", httproutermiddleware.Handler("", getTestHandler(test.statusCode), mdlw))
 
 			// Make the request.
 			resp := httptest.NewRecorder()

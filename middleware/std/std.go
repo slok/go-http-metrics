@@ -10,8 +10,8 @@ import (
 	"github.com/slok/go-http-metrics/middleware"
 )
 
-// Measure returns an measured standard http.Handler.
-func Measure(handlerID string, m middleware.Middleware, h http.Handler) http.Handler {
+// Handler returns an measuring standard http.Handler.
+func Handler(handlerID string, m middleware.Middleware, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		wi := &responseWriterInterceptor{
 			statusCode:     http.StatusOK,

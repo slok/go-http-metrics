@@ -46,7 +46,7 @@ func main() {
 
 	// Wrap our main handler, we pass empty handler ID so the middleware inferes
 	// the handler label from the URL.
-	h := std.Measure("", mdlw, mux)
+	h := std.Handler("", mdlw, mux)
 
 	// Serve our handler.
 	go func() {

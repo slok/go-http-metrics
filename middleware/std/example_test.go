@@ -26,7 +26,7 @@ func Example_stdMiddleware() {
 	})
 
 	// Wrap our handler with the middleware.
-	h := stdmiddleware.Measure("", mdlw, myHandler)
+	h := stdmiddleware.Handler("", mdlw, myHandler)
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")

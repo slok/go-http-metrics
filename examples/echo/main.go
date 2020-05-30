@@ -28,7 +28,7 @@ func main() {
 
 	// Create Echo instance and global middleware.
 	e := echo.New()
-	e.Use(echomiddleware.Measure("", mdlw))
+	e.Use(echomiddleware.Handler("", mdlw))
 
 	// Add our handler.
 	e.GET("/", func(c echo.Context) error {
