@@ -27,7 +27,7 @@ func Example_echoMiddleware() {
 	h := func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello world")
 	}
-	e.GET("/", h, echoMiddleware.Measure("", mdlw))
+	e.GET("/", h, echoMiddleware.Handler("", mdlw))
 
 	// Serve metrics from the default prometheus registry.
 	log.Printf("serving metrics at: %s", ":8081")

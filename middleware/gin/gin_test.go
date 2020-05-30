@@ -21,7 +21,7 @@ func getTestHandler(statusCode int) gin.HandlerFunc {
 	}
 }
 
-func TestMiddlewareIntegration(t *testing.T) {
+func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
 		handlerID     string
 		statusCode    int
@@ -66,7 +66,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			engine := gin.New()
 			engine.POST("/test",
-				ginmiddleware.Measure("", mdlw),
+				ginmiddleware.Handler("", mdlw),
 				getTestHandler(test.statusCode))
 
 			// Make the request.

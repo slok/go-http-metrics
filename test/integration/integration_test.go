@@ -39,7 +39,7 @@ type handlerConfig struct {
 	sleepDuration time.Duration
 }
 
-func TestMiddleware(t *testing.T) {
+func TestMiddlewarePrometheus(t *testing.T) {
 	tests := map[string]struct {
 		handler func(m middleware.Middleware, hc []handlerConfig) http.Handler
 	}{
@@ -142,7 +142,7 @@ func prepareHandlerSTD(m middleware.Middleware, hc []handlerConfig) http.Handler
 	}
 
 	// Setup server and middleware.
-	h := stdmiddleware.Measure("", m, mux)
+	h := stdmiddleware.Handler("", m, mux)
 
 	return h
 }
@@ -167,7 +167,7 @@ func prepareHandlerNegroni(m middleware.Middleware, hc []handlerConfig) http.Han
 
 	// Setup server and middleware.
 	n := negroni.Classic()
-	n.Use(negronimiddleware.Measure("", m))
+	n.Use(negronimiddleware.Handler("", m))
 	n.UseHandler(mux)
 
 	return n
@@ -187,7 +187,7 @@ func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) http.
 		}
 
 		// Setup middleware on each of the routes.
-		r.Handle(h.Method, h.Path, httproutermiddleware.Measure("", hr, m))
+		r.Handle(h.Method, h.Path, httproutermiddleware.Handler("", hr, m))
 	}
 
 	return r
@@ -196,7 +196,7 @@ func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) http.
 func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) http.Handler {
 	// Setup server and middleware.
 	c := gorestful.NewContainer()
-	c.Filter(gorestfulmiddleware.Measure("", m))
+	c.Filter(gorestfulmiddleware.Handler("", m))
 
 	// Setup handlers.
 	ws := &gorestful.WebService{}
@@ -217,7 +217,7 @@ func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) http.H
 func prepareHandlerGin(m middleware.Middleware, hc []handlerConfig) http.Handler {
 	// Setup server and middleware.
 	e := gin.New()
-	e.Use(ginmiddleware.Measure("", m))
+	e.Use(ginmiddleware.Handler("", m))
 
 	// Setup handlers.
 	for _, h := range hc {
@@ -234,7 +234,7 @@ func prepareHandlerGin(m middleware.Middleware, hc []handlerConfig) http.Handler
 func prepareHandlerEcho(m middleware.Middleware, hc []handlerConfig) http.Handler {
 	// Setup server and middleware.
 	e := echo.New()
-	e.Use(echomiddleware.Measure("", m))
+	e.Use(echomiddleware.Handler("", m))
 
 	// Setup handlers.
 	for _, h := range hc {

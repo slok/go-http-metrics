@@ -10,8 +10,8 @@ import (
 	"github.com/slok/go-http-metrics/middleware"
 )
 
-// Measure returns a gorestful measure middleware.
-func Measure(handlerID string, m middleware.Middleware) gorestful.FilterFunction {
+// Handler returns a gorestful measuring middleware.
+func Handler(handlerID string, m middleware.Middleware) gorestful.FilterFunction {
 	return func(req *gorestful.Request, resp *gorestful.Response, chain *gorestful.FilterChain) {
 		r := &reporter{req: req, resp: resp}
 		m.Measure(handlerID, r, func() {

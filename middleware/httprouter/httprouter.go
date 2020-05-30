@@ -11,14 +11,14 @@ import (
 	"github.com/slok/go-http-metrics/middleware/std"
 )
 
-// Measure returns a httprouter.Handler measured middlware.
-func Measure(handlerID string, next httprouter.Handle, m middleware.Middleware) httprouter.Handle {
+// Handler returns a httprouter.Handler measuring middleware.
+func Handler(handlerID string, next httprouter.Handle, m middleware.Middleware) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		// Dummy handler to wrap httprouter Handle type
 		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next(w, r, p)
 		})
 
-		std.Measure(handlerID, m, h).ServeHTTP(w, r)
+		std.Handler(handlerID, m, h).ServeHTTP(w, r)
 	}
 }

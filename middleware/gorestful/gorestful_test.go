@@ -21,7 +21,7 @@ func getTestHandler(statusCode int) gorestful.RouteFunction {
 	})
 }
 
-func TestMiddlewareIntegration(t *testing.T) {
+func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
 		handlerID     string
 		statusCode    int
@@ -65,7 +65,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 			// Create our instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			c := gorestful.NewContainer()
-			c.Filter(gorestfulmiddleware.Measure("", mdlw))
+			c.Filter(gorestfulmiddleware.Handler("", mdlw))
 			ws := &gorestful.WebService{}
 			ws.Produces(gorestful.MIME_JSON)
 			ws.Route(ws.POST("/test").To(getTestHandler(test.statusCode)))

@@ -27,7 +27,7 @@ func main() {
 
 	// Create Gin engine and global middleware.
 	engine := gin.New()
-	engine.Use(ginmiddleware.Measure("", mdlw))
+	engine.Use(ginmiddleware.Handler("", mdlw))
 
 	// Add our handler.
 	engine.GET("/", func(c *gin.Context) {

@@ -21,7 +21,7 @@ func getTestHandler(statusCode int) echo.HandlerFunc {
 	}
 }
 
-func TestMiddlewareIntegration(t *testing.T) {
+func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
 		handlerID     string
 		statusCode    int
@@ -65,7 +65,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 			// Create our echo instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			e := echo.New()
-			e.POST("/test", getTestHandler(test.statusCode), echoMiddleware.Measure("", mdlw))
+			e.POST("/test", getTestHandler(test.statusCode), echoMiddleware.Handler("", mdlw))
 
 			// Make the request.
 			resp := httptest.NewRecorder()

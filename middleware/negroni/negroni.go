@@ -11,9 +11,9 @@ import (
 	"github.com/slok/go-http-metrics/middleware/std"
 )
 
-// Measure returns a Negroni measuring middleware from a Middleware instance.
-func Measure(handlerID string, m middleware.Middleware) negroni.Handler {
+// Handler returns a Negroni measuring middleware.
+func Handler(handlerID string, m middleware.Middleware) negroni.Handler {
 	return negroni.HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		std.Measure(handlerID, m, next).ServeHTTP(rw, r)
+		std.Handler(handlerID, m, next).ServeHTTP(rw, r)
 	})
 }

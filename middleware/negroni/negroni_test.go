@@ -21,7 +21,7 @@ func getTestHandler(statusCode int) http.Handler {
 	})
 }
 
-func TestMiddlewareIntegration(t *testing.T) {
+func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
 		handlerID     string
 		statusCode    int
@@ -65,7 +65,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 			// Create our negroni instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			n := negroni.Classic()
-			n.Use(negronimiddleware.Measure("", mdlw))
+			n.Use(negronimiddleware.Handler("", mdlw))
 			n.UseHandler(getTestHandler(test.statusCode))
 
 			// Make the request.
