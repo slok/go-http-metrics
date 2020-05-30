@@ -32,11 +32,12 @@ import (
 // handlerConfig is the configuration the servers will need to set up to properly
 // execute the tests.
 type handlerConfig struct {
-	Path          string
-	Code          int
-	Method        string
-	ReturnData    string
-	sleepDuration time.Duration
+	Path           string
+	Code           int
+	Method         string
+	ReturnData     string
+	SleepDuration  time.Duration
+	NumberRequests int
 }
 
 func TestMiddlewarePrometheus(t *testing.T) {
@@ -85,16 +86,18 @@ func testMiddlewareRequests(t *testing.T, h http.Handler, expReqs []handlerConfi
 
 	// Make all the requests.
 	for _, config := range expReqs {
-		r, err := http.NewRequest(config.Method, server.URL+config.Path, nil)
-		require.NoError(err)
-		resp, err := http.DefaultClient.Do(r)
-		require.NoError(err)
+		for i := 0; i < config.NumberRequests; i++ {
+			r, err := http.NewRequest(config.Method, server.URL+config.Path, nil)
+			require.NoError(err)
+			resp, err := http.DefaultClient.Do(r)
+			require.NoError(err)
 
-		// Check.
-		assert.Equal(config.Code, resp.StatusCode)
-		b, err := ioutil.ReadAll(resp.Body)
-		require.NoError(err)
-		assert.Equal(config.ReturnData, string(b))
+			// Check.
+			assert.Equal(config.Code, resp.StatusCode)
+			b, err := ioutil.ReadAll(resp.Body)
+			require.NoError(err)
+			assert.Equal(config.ReturnData, string(b))
+		}
 	}
 }
 
@@ -134,7 +137,7 @@ func prepareHandlerSTD(m middleware.Middleware, hc []handlerConfig) http.Handler
 				return
 			}
 
-			time.Sleep(h.sleepDuration)
+			time.Sleep(h.SleepDuration)
 			w.WriteHeader(h.Code)
 			// nolint: errcheck
 			w.Write([]byte(h.ReturnData))
@@ -158,7 +161,7 @@ func prepareHandlerNegroni(m middleware.Middleware, hc []handlerConfig) http.Han
 				return
 			}
 
-			time.Sleep(h.sleepDuration)
+			time.Sleep(h.SleepDuration)
 			w.WriteHeader(h.Code)
 			// nolint: errcheck
 			w.Write([]byte(h.ReturnData))
@@ -180,7 +183,7 @@ func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) http.
 	for _, h := range hc {
 		h := h
 		hr := func(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-			time.Sleep(h.sleepDuration)
+			time.Sleep(h.SleepDuration)
 			w.WriteHeader(h.Code)
 			// nolint: errcheck
 			w.Write([]byte(h.ReturnData))
@@ -203,7 +206,7 @@ func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) http.H
 	for _, h := range hc {
 		h := h
 		ws.Route(ws.Method(h.Method).Path(h.Path).To(func(_ *gorestful.Request, resp *gorestful.Response) {
-			time.Sleep(h.sleepDuration)
+			time.Sleep(h.SleepDuration)
 			resp.WriteHeader(h.Code)
 			// nolint: errcheck
 			resp.Write([]byte(h.ReturnData))
@@ -223,7 +226,7 @@ func prepareHandlerGin(m middleware.Middleware, hc []handlerConfig) http.Handler
 	for _, h := range hc {
 		h := h
 		e.Handle(h.Method, h.Path, func(c *gin.Context) {
-			time.Sleep(h.sleepDuration)
+			time.Sleep(h.SleepDuration)
 			c.String(h.Code, h.ReturnData)
 		})
 	}
@@ -240,7 +243,7 @@ func prepareHandlerEcho(m middleware.Middleware, hc []handlerConfig) http.Handle
 	for _, h := range hc {
 		h := h
 		e.Add(h.Method, h.Path, func(c echo.Context) error {
-			time.Sleep(h.sleepDuration)
+			time.Sleep(h.SleepDuration)
 			return c.String(h.Code, h.ReturnData)
 		})
 	}
