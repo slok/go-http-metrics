@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-Breaking change. The library has been refactored to be more flexible when adding new framework/libraries.
+Breaking change: The library has been refactored to be more flexible when adding new framework/libraries.
 
 ### Added
 
@@ -14,7 +14,7 @@ Breaking change. The library has been refactored to be more flexible when adding
   - Added `Reporter` interface as the service responsible of getting the data to be measured.
   - All different framwork helpers now implement with the new Reporter way.
 - Fixed Gin returning duplicated data (#31).
-- Standard handler now is on `middleware/std` instead of `middleware`.
+- (Breaking) Standard handler now is on `middleware/std` instead of `middleware`.
 
 ### Removed
 

@@ -25,7 +25,7 @@ the main Go net/http handler:
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("hello world!"))
 		})
-		h := httpstdmiddleware.Measure("", mdlw, myHandler)
+		h := httpstdmiddleware.Handler("", mdlw, myHandler)
 
 		// Serve metrics.
 		log.Printf("serving metrics at: %s", ":9090")
