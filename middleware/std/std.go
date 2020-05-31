@@ -80,7 +80,6 @@ func (w *responseWriterInterceptor) Flush() {
 
 // Check interface implementations.
 var (
-	_ middleware.Reporter = &stdReporter{}
 	_ http.ResponseWriter = &responseWriterInterceptor{}
 	_ http.Hijacker       = &responseWriterInterceptor{}
 	_ http.Flusher        = &responseWriterInterceptor{}

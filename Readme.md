@@ -1,6 +1,6 @@
 # go-http-metrics [![Build Status][github-actions-image]][github-actions-url] [![Go Report Card][goreport-image]][goreport-url] [![GoDoc][godoc-image]][godoc-url]
 
-go-http-metrics knows how to measure http metrics in different metric formats. and Go HTTP framewrok/libs. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
+go-http-metrics knows how to measure http metrics in different metric formats a different Go HTTP framework/libs. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
 
 ## Table of contents
 

@@ -1,8 +1,5 @@
 ---
 
 run:
-  skip-dirs:
-    - test/integration/crd
-
   build-tags:
     - integration
