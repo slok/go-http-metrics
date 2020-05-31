@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
+	"github.com/slok/go-http-metrics/middleware/std"
 )
 
 const (
@@ -45,7 +46,7 @@ func main() {
 
 	// Wrap our main handler, we pass empty handler ID so the middleware inferes
 	// the handler label from the URL.
-	h := mdlw.Handler("", mux)
+	h := std.Handler("", mdlw, mux)
 
 	// Serve our handler.
 	go func() {

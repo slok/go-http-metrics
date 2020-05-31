@@ -31,7 +31,13 @@ func main() {
 
 	// Add our handler.
 	engine.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Hello world")
+		c.String(http.StatusOK, "Hello %s", "world")
+	})
+	engine.GET("/json", func(c *gin.Context) {
+		c.JSON(http.StatusAccepted, map[string]string{"hello": "world"})
+	})
+	engine.GET("/yaml", func(c *gin.Context) {
+		c.YAML(http.StatusCreated, map[string]string{"hello": "world"})
 	})
 	engine.GET("/wrong", func(c *gin.Context) {
 		c.String(http.StatusTooManyRequests, "oops")

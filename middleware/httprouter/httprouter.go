@@ -8,11 +8,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/slok/go-http-metrics/middleware"
+	"github.com/slok/go-http-metrics/middleware/std"
 )
 
-// Handler returns a httprouter.Handler compatible middleware from a Middleware factory instance.
-// The first handlerID argument is the same argument passed on Middleware.Handler method.
-// The second argument is the handler that wants to be wrapped.
+// Handler returns a httprouter.Handler measuring middleware.
 func Handler(handlerID string, next httprouter.Handle, m middleware.Middleware) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		// Dummy handler to wrap httprouter Handle type
@@ -20,6 +19,6 @@ func Handler(handlerID string, next httprouter.Handle, m middleware.Middleware) 
 			next(w, r, p)
 		})
 
-		m.Handler(handlerID, h).ServeHTTP(w, r)
+		std.Handler(handlerID, m, h).ServeHTTP(w, r)
 	}
 }

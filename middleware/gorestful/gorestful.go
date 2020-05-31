@@ -3,25 +3,34 @@
 package gorestful
 
 import (
-	"net/http"
+	"context"
 
 	gorestful "github.com/emicklei/go-restful"
 
 	"github.com/slok/go-http-metrics/middleware"
 )
 
-// Handler returns a gorestful compatible middleware from a Middleware factory instance.
-// The first handlerID argument is the same argument passed on Middleware.Handler method.
+// Handler returns a gorestful measuring middleware.
 func Handler(handlerID string, m middleware.Middleware) gorestful.FilterFunction {
-	// Create a dummy handler to wrap the middleware chain of gorestful, this way Middleware
-	// interface can wrap the gorestful chain.
 	return func(req *gorestful.Request, resp *gorestful.Response, chain *gorestful.FilterChain) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			req.Request = r
-			resp.ResponseWriter = w
+		r := &reporter{req: req, resp: resp}
+		m.Measure(handlerID, r, func() {
 			chain.ProcessFilter(req, resp)
 		})
-
-		m.Handler(handlerID, h).ServeHTTP(resp.ResponseWriter, req.Request)
 	}
 }
+
+type reporter struct {
+	req  *gorestful.Request
+	resp *gorestful.Response
+}
+
+func (r *reporter) Method() string { return r.req.Request.Method }
+
+func (r *reporter) Context() context.Context { return r.req.Request.Context() }
+
+func (r *reporter) URLPath() string { return r.req.Request.URL.Path }
+
+func (r *reporter) StatusCode() int { return r.resp.StatusCode() }
+
+func (r *reporter) BytesWritten() int64 { return int64(r.resp.ContentLength()) }

@@ -1,8 +1,6 @@
 # go-http-metrics [![Build Status][github-actions-image]][github-actions-url] [![Go Report Card][goreport-image]][goreport-url] [![GoDoc][godoc-image]][godoc-url]
 
-go-http-metrics knows how to measure http metrics in different metric formats. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
-
-It measures based on a middleware that is compatible with Go core net/http handler, if you are using a framework that isn't directly compatible with go's `http.Handler` interface, do not worry, there are multiple helpers available to get middlewares for the most used http Go frameworks. If there isn't you can open an issue or a PR.
+go-http-metrics knows how to measure http metrics in different metric formats a different Go HTTP framework/libs. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
 
 ## Table of contents
 
@@ -58,6 +56,7 @@ import (
     "github.com/prometheus/client_golang/prometheus/promhttp"
     metrics "github.com/slok/go-http-metrics/metrics/prometheus"
     "github.com/slok/go-http-metrics/middleware"
+    middlewarestd "github.com/slok/go-http-metrics/middleware/std"
 )
 
 func main() {
@@ -67,11 +66,11 @@ func main() {
     })
 
     // Our handler.
-    myHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusOK)
         w.Write([]byte("hello world!"))
     })
-    h := mdlw.Handler("", myHandler)
+    h = middlewarestd.Handler("", mdlw, h)
 
     // Serve metrics.
     log.Printf("serving metrics at: %s", ":9090")
@@ -195,18 +194,6 @@ Same options as the Prometheus recorder.
 #### UnregisterViewsBeforeRegister
 
 This Option is used to unregister the Recorder views before are being registered, this is option is mainly due to the nature of OpenCensus implementation and the huge usage fo global state making impossible to run multiple tests. On regular usage of the library this setting is very rare that needs to be used.
-
-## Benchmarks
-
-```text
-pkg: github.com/slok/go-http-metrics/middleware
-
-BenchmarkMiddlewareHandler/benchmark_with_default_settings.-4         	 1000000	      1206 ns/op	     256 B/op	       6 allocs/op
-BenchmarkMiddlewareHandler/benchmark_disabling_measuring_size.-4      	 1000000	      1198 ns/op	     256 B/op	       6 allocs/op
-BenchmarkMiddlewareHandler/benchmark_disabling_inflights.-4           	 1000000	      1139 ns/op	     256 B/op	       6 allocs/op
-BenchmarkMiddlewareHandler/benchmark_with_grouped_status_code.-4      	 1000000	      1534 ns/op	     256 B/op	       7 allocs/op
-BenchmarkMiddlewareHandler/benchmark_with_predefined_handler_ID-4     	 1000000	      1258 ns/op	     256 B/op	       6 allocs/op
-```
 
 [github-actions-image]: https://github.com/slok/go-http-metrics/workflows/CI/badge.svg
 [github-actions-url]: https://github.com/slok/go-http-metrics/actions

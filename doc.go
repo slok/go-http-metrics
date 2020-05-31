@@ -11,6 +11,7 @@ the main Go net/http handler:
 		"github.com/prometheus/client_golang/prometheus/promhttp"
 		httpmetrics "github.com/slok/go-http-metrics/metrics/prometheus"
 		httpmiddleware "github.com/slok/go-http-metrics/middleware"
+		httpstdmiddleware "github.com/slok/go-http-metrics/middleware/std"
 	)
 
 	func main() {
@@ -24,7 +25,7 @@ the main Go net/http handler:
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("hello world!"))
 		})
-		h := mdlw.Handler("", myHandler)
+		h := httpstdmiddleware.Handler("", mdlw, myHandler)
 
 		// Serve metrics.
 		log.Printf("serving metrics at: %s", ":9090")

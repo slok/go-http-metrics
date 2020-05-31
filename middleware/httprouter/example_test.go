@@ -10,6 +10,7 @@ import (
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 	httproutermiddleware "github.com/slok/go-http-metrics/middleware/httprouter"
+	stdmiddleware "github.com/slok/go-http-metrics/middleware/std"
 )
 
 // HTTPRouterMiddlewareByHandler shows how you would create a default middleware factory
@@ -75,7 +76,7 @@ func Example_httprouterMiddlewareOnRouter() {
 	}()
 
 	// Wrap the router with the middleware.
-	h := mdlw.Handler("", r)
+	h := stdmiddleware.Handler("", mdlw, r)
 
 	// Serve our handler.
 	log.Printf("listening at: %s", ":8080")
