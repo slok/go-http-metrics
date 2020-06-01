@@ -74,7 +74,7 @@ func TestMiddleware(t *testing.T) {
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			e := echo.New()
 			req := test.req()
-			e.Add(req.Method, req.URL.Path, test.handler(), echoMiddleware.Handler("", mdlw))
+			e.Add(req.Method, req.URL.Path, test.handler(), echoMiddleware.Handler(test.handlerID, mdlw))
 
 			// Make the request.
 			resp := httptest.NewRecorder()
