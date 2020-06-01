@@ -1,5 +1,4 @@
-// Package echo is a helper package to get an echo compatible
-// handler/middleware from the standard net/http Middleware factory.
+// Package echo is a helper package to get an echo compatible middleware
 package echo
 
 import (

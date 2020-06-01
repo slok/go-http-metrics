@@ -1,5 +1,4 @@
-// Package gorestful is a helper package to get a gorestful compatible
-// handler/middleware from the standard net/http Middleware factory.
+// Package gorestful is a helper package to get a gorestful compatible middleware.
 package gorestful
 
 import (
