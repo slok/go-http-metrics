@@ -1,5 +1,4 @@
-// Package negroni is a helper package to get a negroni compatible
-// handler/middleware from the standard net/http Middleware factory.
+// Package negroni is a helper package to get a negroni compatible middleware.
 package negroni
 
 import (

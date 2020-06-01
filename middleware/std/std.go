@@ -1,3 +1,4 @@
+// Package std is a helper package to get a standard `http.Handler` compatible middleware.
 package std
 
 import (

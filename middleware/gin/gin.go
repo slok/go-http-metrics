@@ -1,5 +1,4 @@
-// Package gin is a helper package to get a gin compatible
-// handler/middleware from the standard net/http Middleware factory.
+// Package gin is a helper package to get a gin compatible middleware.
 package gin
 
 import (
