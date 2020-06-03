@@ -18,11 +18,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/negroni"
+	"goji.io"
+	"goji.io/pat"
 
 	metricsprometheus "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 	echomiddleware "github.com/slok/go-http-metrics/middleware/echo"
 	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
+	gojimiddleware "github.com/slok/go-http-metrics/middleware/goji"
 	gorestfulmiddleware "github.com/slok/go-http-metrics/middleware/gorestful"
 	httproutermiddleware "github.com/slok/go-http-metrics/middleware/httprouter"
 	negronimiddleware "github.com/slok/go-http-metrics/middleware/negroni"
@@ -50,6 +53,7 @@ func TestMiddlewarePrometheus(t *testing.T) {
 		"Gorestful":        {handler: prepareHandlerGorestful},
 		"Gin":              {handler: prepareHandlerGin},
 		"Echo":             {handler: prepareHandlerEcho},
+		"Goji":             {handler: prepareHandlerGoji},
 	}
 
 	for name, test := range tests {
@@ -139,8 +143,7 @@ func prepareHandlerSTD(m middleware.Middleware, hc []handlerConfig) http.Handler
 
 			time.Sleep(h.SleepDuration)
 			w.WriteHeader(h.Code)
-			// nolint: errcheck
-			w.Write([]byte(h.ReturnData))
+			w.Write([]byte(h.ReturnData)) // nolint: errcheck
 		}))
 	}
 
@@ -163,8 +166,7 @@ func prepareHandlerNegroni(m middleware.Middleware, hc []handlerConfig) http.Han
 
 			time.Sleep(h.SleepDuration)
 			w.WriteHeader(h.Code)
-			// nolint: errcheck
-			w.Write([]byte(h.ReturnData))
+			w.Write([]byte(h.ReturnData)) // nolint: errcheck
 		}))
 	}
 
@@ -185,8 +187,7 @@ func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) http.
 		hr := func(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 			time.Sleep(h.SleepDuration)
 			w.WriteHeader(h.Code)
-			// nolint: errcheck
-			w.Write([]byte(h.ReturnData))
+			w.Write([]byte(h.ReturnData)) // nolint: errcheck
 		}
 
 		// Setup middleware on each of the routes.
@@ -208,8 +209,7 @@ func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) http.H
 		ws.Route(ws.Method(h.Method).Path(h.Path).To(func(_ *gorestful.Request, resp *gorestful.Response) {
 			time.Sleep(h.SleepDuration)
 			resp.WriteHeader(h.Code)
-			// nolint: errcheck
-			resp.Write([]byte(h.ReturnData))
+			resp.Write([]byte(h.ReturnData)) // nolint: errcheck
 		}))
 	}
 	c.Add(ws)
@@ -249,4 +249,22 @@ func prepareHandlerEcho(m middleware.Middleware, hc []handlerConfig) http.Handle
 	}
 
 	return e
+}
+
+func prepareHandlerGoji(m middleware.Middleware, hc []handlerConfig) http.Handler {
+	// Setup server and middleware.
+	mux := goji.NewMux()
+	mux.Use(gojimiddleware.Handler("", m))
+
+	// Setup handlers.
+	for _, h := range hc {
+		h := h
+		mux.HandleFunc(pat.NewWithMethods(h.Path, h.Method), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(h.SleepDuration)
+			w.WriteHeader(h.Code)
+			w.Write([]byte(h.ReturnData)) // nolint: errcheck
+		}))
+	}
+
+	return mux
 }

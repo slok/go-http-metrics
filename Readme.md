@@ -41,6 +41,7 @@ The middleware is mainly focused to be compatible with Go std library using http
 - [go-restful][gorestful-example]
 - [Gin][gin-example]
 - [Echo][echo-example]
+- [Goji][goji-example]
 
 ## Getting Started
 
@@ -212,5 +213,6 @@ This Option is used to unregister the Recorder views before are being registered
 [gorestful-example]: examples/gorestful
 [gin-example]: examples/gin
 [echo-example]: examples/echo
+[goji-example]: examples/goji
 [prometheus-recorder]: metrics/prometheus
 [opencensus-recorder]: metrics/opencensus

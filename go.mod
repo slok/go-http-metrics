@@ -10,6 +10,7 @@ require (
 	github.com/stretchr/testify v1.6.0
 	github.com/urfave/negroni v1.0.0
 	go.opencensus.io v0.22.3
+	goji.io v2.0.2+incompatible
 )
 
-go 1.13
+go 1.14

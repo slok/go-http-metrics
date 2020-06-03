@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- New middleware helper for the Goji framework.
+
 ## [0.7.0] - 2020-06-02
 
 Breaking change: The library has been refactored to be more flexible when adding new framework/libraries.
