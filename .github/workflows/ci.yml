@@ -7,19 +7,19 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     # Execute the checks inside the container instead the VM.
-    container: golangci/golangci-lint:v1.27.0-alpine
+    container: golangci/golangci-lint:v1.31.0-alpine
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - run: golangci-lint run -E goimports
 
   unit-test:
     name: Unit test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-go@v1
         with:
-          go-version: 1.14
+          go-version: 1.15
       - run: make test
 
   integration-test:
@@ -27,8 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check, unit-test]
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-go@v1
         with:
-          go-version: 1.14
+          go-version: 1.15
       - run: make integration-test
