@@ -42,6 +42,11 @@ The middleware is mainly focused to be compatible with Go std library using http
 - [Gin][gin-example]
 - [Echo][echo-example]
 - [Goji][goji-example]
+- [Chi][chi-example]
+- [Alice][alice-example]
+- [gorilla][gorilla-example]
+
+It supports any framework that supports http.Handler provider type middleware `func(http.Handler) http.Handler` (e.g Chi, Alice, Gorilla...). Use [`std.HandlerProvider`][handler-provider-docs]
 
 ## Getting Started
 
@@ -200,8 +205,8 @@ This Option is used to unregister the Recorder views before are being registered
 [github-actions-url]: https://github.com/slok/go-http-metrics/actions
 [goreport-image]: https://goreportcard.com/badge/github.com/slok/go-http-metrics
 [goreport-url]: https://goreportcard.com/report/github.com/slok/go-http-metrics
-[godoc-image]: https://godoc.org/github.com/slok/go-http-metrics?status.svg
-[godoc-url]: https://godoc.org/github.com/slok/go-http-metrics
+[godoc-image]: https://pkg.go.dev/badge/github.com/slok/go-http-metrics
+[godoc-url]: https://pkg.go.dev/github.com/slok/go-http-metrics
 [docs]: https://godoc.org/github.com/slok/go-http-metrics
 [examples]: examples/
 [red]: https://www.weave.works/blog/the-red-method-key-metrics-for-microservices-architecture/
@@ -214,5 +219,9 @@ This Option is used to unregister the Recorder views before are being registered
 [gin-example]: examples/gin
 [echo-example]: examples/echo
 [goji-example]: examples/goji
+[chi-example]: examples/chi
+[alice-example]: examples/alice
+[gorilla-example]: examples/gorilla
 [prometheus-recorder]: metrics/prometheus
 [opencensus-recorder]: metrics/opencensus
+[handler-provider-docs]: https://pkg.go.dev/github.com/slok/go-http-metrics/middleware/std#HandlerProvider

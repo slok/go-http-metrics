@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- New helper method to get an `std` HTTP provider (`std.HandlerProvider`) (used by various frameworks like Gorilla).
+- Support Chi library.
+- Support Alice library.
+- Support Gorilla library.
+
 ## [0.8.0] - 2020-06-04
 
 ### Added
@@ -92,7 +99,7 @@ Breaking change: The library has been refactored to be more flexible when adding
 - Prometheus recorder.
 
 [unreleased]: https://github.com/slok/go-http-metrics/compare/v0.8.0...HEAD
-[0.8.0]:  https://github.com/slok/go-http-metrics/compare/v0.7.0...v0.8.0
+[0.8.0]: https://github.com/slok/go-http-metrics/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/slok/go-http-metrics/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/slok/go-http-metrics/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/slok/go-http-metrics/compare/v0.5.0...v0.6.0

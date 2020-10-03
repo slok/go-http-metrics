@@ -1,6 +1,6 @@
 // +build integration
 
-package integration_test
+package integration
 
 import (
 	"io/ioutil"
@@ -11,7 +11,10 @@ import (
 
 	gorestful "github.com/emicklei/go-restful"
 	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi"
+	"github.com/gorilla/mux"
 	"github.com/julienschmidt/httprouter"
+	"github.com/justinas/alice"
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -54,6 +57,9 @@ func TestMiddlewarePrometheus(t *testing.T) {
 		"Gin":              {handler: prepareHandlerGin},
 		"Echo":             {handler: prepareHandlerEcho},
 		"Goji":             {handler: prepareHandlerGoji},
+		"Chi":              {handler: prepareHandlerChi},
+		"Alice":            {handler: prepareHandlerAlice},
+		"Gorilla":          {handler: prepareHandlerGorilla},
 	}
 
 	for name, test := range tests {
@@ -267,4 +273,65 @@ func prepareHandlerGoji(m middleware.Middleware, hc []handlerConfig) http.Handle
 	}
 
 	return mux
+}
+
+func prepareHandlerChi(m middleware.Middleware, hc []handlerConfig) http.Handler {
+	// Setup server and middleware.
+	mux := chi.NewMux()
+	mux.Use(stdmiddleware.HandlerProvider("", m))
+
+	// Setup handlers.
+	for _, h := range hc {
+		h := h
+		mux.Method(h.Method, h.Path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(h.SleepDuration)
+			w.WriteHeader(h.Code)
+			w.Write([]byte(h.ReturnData)) // nolint: errcheck
+		}))
+	}
+
+	return mux
+}
+
+func prepareHandlerAlice(m middleware.Middleware, hc []handlerConfig) http.Handler {
+	// Setup handlers.
+	mux := http.NewServeMux()
+	for _, h := range hc {
+		h := h
+		mux.Handle(h.Path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != h.Method {
+				w.WriteHeader(http.StatusMethodNotAllowed)
+				return
+			}
+
+			time.Sleep(h.SleepDuration)
+			w.WriteHeader(h.Code)
+			w.Write([]byte(h.ReturnData)) // nolint: errcheck
+		}))
+	}
+
+	// Setup server and middleware.
+	h := alice.New(stdmiddleware.HandlerProvider("", m)).Then(mux)
+
+	return h
+}
+
+func prepareHandlerGorilla(m middleware.Middleware, hc []handlerConfig) http.Handler {
+	// Setup handlers.
+	r := mux.NewRouter()
+	for _, h := range hc {
+		h := h
+		r.Methods(h.Method).
+			Path(h.Path).
+			HandlerFunc(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				time.Sleep(h.SleepDuration)
+				w.WriteHeader(h.Code)
+				w.Write([]byte(h.ReturnData)) // nolint: errcheck
+			}))
+	}
+
+	// Setup middleware.
+	r.Use(stdmiddleware.HandlerProvider("", m))
+
+	return r
 }

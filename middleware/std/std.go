@@ -29,6 +29,14 @@ func Handler(handlerID string, m middleware.Middleware, h http.Handler) http.Han
 	})
 }
 
+// HandlerProvider is a helper method that returns a handler provider. This kind of
+// provider is a defacto standard in some frameworks (e.g: Gorilla, Chi...).
+func HandlerProvider(handlerID string, m middleware.Middleware) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return Handler(handlerID, m, next)
+	}
+}
+
 type stdReporter struct {
 	w *responseWriterInterceptor
 	r *http.Request
