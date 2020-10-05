@@ -1,6 +1,6 @@
 # go-http-metrics [![Build Status][github-actions-image]][github-actions-url] [![Go Report Card][goreport-image]][goreport-url] [![GoDoc][godoc-image]][godoc-url]
 
-go-http-metrics knows how to measure http metrics in different metric formats a different Go HTTP framework/libs. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
+go-http-metrics knows how to measure http metrics in different metric formats and Go HTTP framework/libs. The metrics measured are based on [RED] and/or [Four golden signals], follow standards and try to be measured in a efficient way.
 
 ## Table of contents
 
@@ -44,7 +44,7 @@ The middleware is mainly focused to be compatible with Go std library using http
 - [Goji][goji-example]
 - [Chi][chi-example]
 - [Alice][alice-example]
-- [gorilla][gorilla-example]
+- [Gorilla][gorilla-example]
 
 It supports any framework that supports http.Handler provider type middleware `func(http.Handler) http.Handler` (e.g Chi, Alice, Gorilla...). Use [`std.HandlerProvider`][handler-provider-docs]
 
