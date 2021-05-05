@@ -11,8 +11,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// GinMiddleware shows how you would create a default middleware factory and use it
-// to create a Gin compatible middleware.
+// FasthttpMiddleware shows how you would create a default middleware
+// factory and use it to create a fasthttp compatible middleware.
 func Example_fasthttpMiddleware() {
 	// Create our middleware factory with the default settings.
 	mdlw := middleware.New(middleware.Config{
