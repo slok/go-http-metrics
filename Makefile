@@ -1,8 +1,8 @@
 
 UNIT_TEST_CMD 			:= go test `go list ./... | grep -v test\/integration` -race -coverprofile=.test_coverage.txt && \
 						   	go tool cover -func=.test_coverage.txt | tail -n1 | awk '{print "Total test coverage: " $$3}'
-INTEGRATION_TEST_CMD 	:= go test ./test/integration -race -tags='integration'
-BENCHMARK_CMD 			:= go test `go list ./... | grep -v vendor` -benchmem -bench=.
+INTEGRATION_TEST_CMD 	:= go test ./test/integration -race
+BENCHMARK_CMD 			:= go test `go list ./...` -benchmem -bench=.
 CHECK_CMD 				:= golangci-lint run -E goimports
 DEPS_CMD 				:= go mod tidy
 MOCKS_CMD 				:= go generate ./internal/mocks

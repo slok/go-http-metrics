@@ -1,5 +1,3 @@
-// +build integration
-
 package integration
 
 import (
@@ -35,6 +33,16 @@ import (
 	stdmiddleware "github.com/slok/go-http-metrics/middleware/std"
 )
 
+type server interface {
+	Close()
+	URL() string
+}
+
+type testServer struct{ server *httptest.Server }
+
+func (t testServer) Close()      { t.server.Close() }
+func (t testServer) URL() string { return t.server.URL }
+
 // handlerConfig is the configuration the servers will need to set up to properly
 // execute the tests.
 type handlerConfig struct {
@@ -48,18 +56,18 @@ type handlerConfig struct {
 
 func TestMiddlewarePrometheus(t *testing.T) {
 	tests := map[string]struct {
-		handler func(m middleware.Middleware, hc []handlerConfig) http.Handler
+		server func(m middleware.Middleware, hc []handlerConfig) server
 	}{
-		"STD http.Handler": {handler: prepareHandlerSTD},
-		"Negroni":          {handler: prepareHandlerNegroni},
-		"HTTPRouter":       {handler: prepareHandlerHTTPRouter},
-		"Gorestful":        {handler: prepareHandlerGorestful},
-		"Gin":              {handler: prepareHandlerGin},
-		"Echo":             {handler: prepareHandlerEcho},
-		"Goji":             {handler: prepareHandlerGoji},
-		"Chi":              {handler: prepareHandlerChi},
-		"Alice":            {handler: prepareHandlerAlice},
-		"Gorilla":          {handler: prepareHandlerGorilla},
+		"STD http.Handler": {server: prepareHandlerSTD},
+		"Negroni":          {server: prepareHandlerNegroni},
+		"HTTPRouter":       {server: prepareHandlerHTTPRouter},
+		"Gorestful":        {server: prepareHandlerGorestful},
+		"Gin":              {server: prepareHandlerGin},
+		"Echo":             {server: prepareHandlerEcho},
+		"Goji":             {server: prepareHandlerGoji},
+		"Chi":              {server: prepareHandlerChi},
+		"Alice":            {server: prepareHandlerAlice},
+		"Gorilla":          {server: prepareHandlerGorilla},
 	}
 
 	for name, test := range tests {
@@ -76,28 +84,27 @@ func TestMiddlewarePrometheus(t *testing.T) {
 				Recorder: rec,
 			})
 
-			serverHandler := test.handler(mdlw, expReqs)
+			server := test.server(mdlw, expReqs)
 			metricsHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 
 			// Test.
-			testMiddlewareRequests(t, serverHandler, expReqs)
+			testMiddlewareRequests(t, server, expReqs)
 			testMiddlewarePrometheusMetrics(t, metricsHandler, expMetrics)
 		})
 	}
 }
 
-func testMiddlewareRequests(t *testing.T, h http.Handler, expReqs []handlerConfig) {
+func testMiddlewareRequests(t *testing.T, server server, expReqs []handlerConfig) {
 	require := require.New(t)
 	assert := assert.New(t)
 
-	// Setup server.
-	server := httptest.NewServer(h)
+	// Setup server cleanup.
 	t.Cleanup(func() { server.Close() })
 
 	// Make all the requests.
 	for _, config := range expReqs {
 		for i := 0; i < config.NumberRequests; i++ {
-			r, err := http.NewRequest(config.Method, server.URL+config.Path, nil)
+			r, err := http.NewRequest(config.Method, server.URL()+config.Path, nil)
 			require.NoError(err)
 			resp, err := http.DefaultClient.Do(r)
 			require.NoError(err)
@@ -136,7 +143,7 @@ func testMiddlewarePrometheusMetrics(t *testing.T, h http.Handler, expMetrics []
 	}
 }
 
-func prepareHandlerSTD(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerSTD(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup handlers.
 	mux := http.NewServeMux()
 	for _, h := range hc {
@@ -156,10 +163,10 @@ func prepareHandlerSTD(m middleware.Middleware, hc []handlerConfig) http.Handler
 	// Setup server and middleware.
 	h := stdmiddleware.Handler("", m, mux)
 
-	return h
+	return testServer{server: httptest.NewServer(h)}
 }
 
-func prepareHandlerNegroni(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerNegroni(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup handlers.
 	mux := http.NewServeMux()
 	for _, h := range hc {
@@ -181,10 +188,10 @@ func prepareHandlerNegroni(m middleware.Middleware, hc []handlerConfig) http.Han
 	n.Use(negronimiddleware.Handler("", m))
 	n.UseHandler(mux)
 
-	return n
+	return testServer{server: httptest.NewServer(n)}
 }
 
-func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) server {
 	r := httprouter.New()
 
 	// Setup handlers.
@@ -200,10 +207,10 @@ func prepareHandlerHTTPRouter(m middleware.Middleware, hc []handlerConfig) http.
 		r.Handle(h.Method, h.Path, httproutermiddleware.Handler("", hr, m))
 	}
 
-	return r
+	return testServer{server: httptest.NewServer(r)}
 }
 
-func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup server and middleware.
 	c := gorestful.NewContainer()
 	c.Filter(gorestfulmiddleware.Handler("", m))
@@ -220,10 +227,10 @@ func prepareHandlerGorestful(m middleware.Middleware, hc []handlerConfig) http.H
 	}
 	c.Add(ws)
 
-	return c
+	return testServer{server: httptest.NewServer(c)}
 }
 
-func prepareHandlerGin(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerGin(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup server and middleware.
 	e := gin.New()
 	e.Use(ginmiddleware.Handler("", m))
@@ -237,10 +244,10 @@ func prepareHandlerGin(m middleware.Middleware, hc []handlerConfig) http.Handler
 		})
 	}
 
-	return e
+	return testServer{server: httptest.NewServer(e)}
 }
 
-func prepareHandlerEcho(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerEcho(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup server and middleware.
 	e := echo.New()
 	e.Use(echomiddleware.Handler("", m))
@@ -254,10 +261,10 @@ func prepareHandlerEcho(m middleware.Middleware, hc []handlerConfig) http.Handle
 		})
 	}
 
-	return e
+	return testServer{server: httptest.NewServer(e)}
 }
 
-func prepareHandlerGoji(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerGoji(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup server and middleware.
 	mux := goji.NewMux()
 	mux.Use(gojimiddleware.Handler("", m))
@@ -272,10 +279,10 @@ func prepareHandlerGoji(m middleware.Middleware, hc []handlerConfig) http.Handle
 		}))
 	}
 
-	return mux
+	return testServer{server: httptest.NewServer(mux)}
 }
 
-func prepareHandlerChi(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerChi(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup server and middleware.
 	mux := chi.NewMux()
 	mux.Use(stdmiddleware.HandlerProvider("", m))
@@ -290,10 +297,10 @@ func prepareHandlerChi(m middleware.Middleware, hc []handlerConfig) http.Handler
 		}))
 	}
 
-	return mux
+	return testServer{server: httptest.NewServer(mux)}
 }
 
-func prepareHandlerAlice(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerAlice(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup handlers.
 	mux := http.NewServeMux()
 	for _, h := range hc {
@@ -313,10 +320,10 @@ func prepareHandlerAlice(m middleware.Middleware, hc []handlerConfig) http.Handl
 	// Setup server and middleware.
 	h := alice.New(stdmiddleware.HandlerProvider("", m)).Then(mux)
 
-	return h
+	return testServer{server: httptest.NewServer(h)}
 }
 
-func prepareHandlerGorilla(m middleware.Middleware, hc []handlerConfig) http.Handler {
+func prepareHandlerGorilla(m middleware.Middleware, hc []handlerConfig) server {
 	// Setup handlers.
 	r := mux.NewRouter()
 	for _, h := range hc {
@@ -333,5 +340,5 @@ func prepareHandlerGorilla(m middleware.Middleware, hc []handlerConfig) http.Han
 	// Setup middleware.
 	r.Use(stdmiddleware.HandlerProvider("", m))
 
-	return r
+	return testServer{server: httptest.NewServer(r)}
 }
