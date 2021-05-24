@@ -2,12 +2,14 @@ package integration
 
 import (
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	gorestful "github.com/emicklei/go-restful"
+	fasthttprouter "github.com/fasthttp/router"
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/mux"
@@ -19,12 +21,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/negroni"
+	"github.com/valyala/fasthttp"
 	"goji.io"
 	"goji.io/pat"
 
 	metricsprometheus "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 	echomiddleware "github.com/slok/go-http-metrics/middleware/echo"
+	fasthttpmiddleware "github.com/slok/go-http-metrics/middleware/fasthttp"
 	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 	gojimiddleware "github.com/slok/go-http-metrics/middleware/goji"
 	gorestfulmiddleware "github.com/slok/go-http-metrics/middleware/gorestful"
@@ -33,6 +37,8 @@ import (
 	stdmiddleware "github.com/slok/go-http-metrics/middleware/std"
 )
 
+// server is the interface used by the integration tests to return a listening server
+// where we can make request and then test the metrics.
 type server interface {
 	Close()
 	URL() string
@@ -42,6 +48,13 @@ type testServer struct{ server *httptest.Server }
 
 func (t testServer) Close()      { t.server.Close() }
 func (t testServer) URL() string { return t.server.URL }
+
+type netListenerServer struct {
+	ln net.Listener
+}
+
+func (n netListenerServer) Close()      { _ = n.ln.Close() }
+func (n netListenerServer) URL() string { return "http://" + n.ln.Addr().String() }
 
 // handlerConfig is the configuration the servers will need to set up to properly
 // execute the tests.
@@ -68,6 +81,7 @@ func TestMiddlewarePrometheus(t *testing.T) {
 		"Chi":              {server: prepareHandlerChi},
 		"Alice":            {server: prepareHandlerAlice},
 		"Gorilla":          {server: prepareHandlerGorilla},
+		"Fasthttp":         {server: prepareHandlerFastHTTP},
 	}
 
 	for name, test := range tests {
@@ -341,4 +355,30 @@ func prepareHandlerGorilla(m middleware.Middleware, hc []handlerConfig) server {
 	r.Use(stdmiddleware.HandlerProvider("", m))
 
 	return testServer{server: httptest.NewServer(r)}
+}
+
+func prepareHandlerFastHTTP(m middleware.Middleware, hc []handlerConfig) server {
+	// Setup handlers.
+	r := fasthttprouter.New()
+	for _, h := range hc {
+		h := h
+		r.Handle(h.Method, h.Path, fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
+			time.Sleep(h.SleepDuration)
+			ctx.SetStatusCode(h.Code)
+			ctx.SetBody([]byte(h.ReturnData))
+		}))
+	}
+
+	// Setup middleware.
+	fasthttpHandler := fasthttpmiddleware.Handler("", m, r.Handler)
+
+	// Setup server.
+	// fasthttp doesn't use the regular http std lib server, so we need to use
+	// a custom net TCP listener so we can obtain the random port URL.
+	ln, _ := net.Listen("tcp", "127.0.0.1:0") // `:0` for random port.
+	go func() {
+		fasthttp.Serve(ln, fasthttpHandler) // nolint: errcheck
+	}()
+
+	return netListenerServer{ln: ln}
 }
