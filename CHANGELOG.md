@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support Fasthttp library.
+
 ## [0.9.0] - 2020-10-03
 
 ### Added
