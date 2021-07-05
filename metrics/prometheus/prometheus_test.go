@@ -159,7 +159,7 @@ func TestPrometheusRecorder(t *testing.T) {
 			},
 		},
 		{
-			name: "Using a custom labels in the configuration should measure with those labels.",
+			name: "Using a custom label names in the configuration should measure with those labels.",
 			config: libprometheus.Config{
 				HandlerIDLabel:  "route_id",
 				StatusCodeLabel: "status_code",
@@ -186,12 +186,38 @@ func TestPrometheusRecorder(t *testing.T) {
 				`http_request_duration_seconds_count{http_method="GET",http_service="svc1",route_id="test1",status_code="200"} 2`,
 			},
 		},
+		{
+			name: "Using a custom labels in the configuration should measure with those labels.",
+			config: libprometheus.Config{
+				DurationBuckets: []float64{1, 10},
+				CustomLabels:    []string{"user_id"},
+			},
+			recordMetrics: func(r metrics.Recorder) {
+				r.ObserveHTTPRequestDuration(context.TODO(), metrics.HTTPReqProperties{
+					Service:      "svc1",
+					ID:           "test1",
+					Method:       http.MethodGet,
+					Code:         "200",
+					CustomLabels: []string{"userVIP"},
+				}, 6*time.Second)
+				r.AddInflightRequests(context.TODO(), metrics.HTTPProperties{
+					Service:      "svc1",
+					ID:           "test1",
+					CustomLabels: []string{"userVIP"},
+				}, 1)
+			},
+			expMetrics: []string{
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",service="svc1",user_id="userVIP",le="1"} 0`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",service="svc1",user_id="userVIP",le="10"} 1`,
+				`http_request_duration_seconds_bucket{code="200",handler="test1",method="GET",service="svc1",user_id="userVIP",le="+Inf"} 1`,
+				`http_request_duration_seconds_count{code="200",handler="test1",method="GET",service="svc1",user_id="userVIP"} 1`,
+				`http_requests_inflight{handler="test1",service="svc1",user_id="userVIP"} 1`,
+			},
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert := assert.New(t)
-
 			reg := prometheus.NewRegistry()
 			test.config.Registry = reg
 			mrecorder := libprometheus.NewRecorder(test.config)
@@ -205,10 +231,10 @@ func TestPrometheusRecorder(t *testing.T) {
 			resp := rec.Result()
 
 			// Check all metrics are present.
-			if assert.Equal(http.StatusOK, resp.StatusCode) {
+			if assert.Equal(t, http.StatusOK, resp.StatusCode) {
 				body, _ := ioutil.ReadAll(resp.Body)
 				for _, expMetric := range test.expMetrics {
-					assert.Contains(string(body), expMetric, "metric not present on the result")
+					assert.Contains(t, string(body), expMetric, "metric not present on the result")
 				}
 			}
 		})

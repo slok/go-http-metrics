@@ -1,5 +1,7 @@
 module github.com/slok/go-http-metrics
 
+go 1.15
+
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.3.0
 	github.com/emicklei/go-restful v2.15.0+incompatible
@@ -17,5 +19,3 @@ require (
 	go.opencensus.io v0.23.0
 	goji.io v2.0.2+incompatible
 )
-
-go 1.15
