@@ -99,11 +99,16 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 			code = strconv.Itoa(reporter.StatusCode())
 		}
 
+		labels := make(map[string]string)
+		for k, v := range reporter.CustomHeaders() {
+			labels[k] = v
+		}
 		props := metrics.HTTPReqProperties{
 			Service: m.cfg.Service,
 			ID:      hid,
 			Method:  reporter.Method(),
 			Code:    code,
+			Labels:  labels,
 		}
 		m.cfg.Recorder.ObserveHTTPRequestDuration(ctx, props, duration)
 
