@@ -124,5 +124,6 @@ type Reporter interface {
 	Context() context.Context
 	URLPath() string
 	StatusCode() int
+	CustomHeaders() map[string]string
 	BytesWritten() int64
 }
