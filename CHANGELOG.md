@@ -5,6 +5,11 @@
 ### Added
 
 - Support Fasthttp library.
+- Support gorestful v3
+
+### Changed
+
+- Drop support gorestful v2
 
 ## [0.9.0] - 2020-10-03
 

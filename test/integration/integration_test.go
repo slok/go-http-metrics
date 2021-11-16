@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	gorestful "github.com/emicklei/go-restful"
+	gorestful "github.com/emicklei/go-restful/v3"
 	fasthttprouter "github.com/fasthttp/router"
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi"
