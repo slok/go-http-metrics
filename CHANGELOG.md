@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2021-11-16
+
 ### Added
 
 - Support Fasthttp library.
@@ -109,7 +111,8 @@ Breaking change: The library has been refactored to be more flexible when adding
 - HTTP latency requests.
 - Prometheus recorder.
 
-[unreleased]: https://github.com/slok/go-http-metrics/compare/v0.9.0...HEAD
+[unreleased]: https://github.com/slok/go-http-metrics/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/slok/go-http-metrics/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/slok/go-http-metrics/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/slok/go-http-metrics/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/slok/go-http-metrics/compare/v0.6.1...v0.7.0
