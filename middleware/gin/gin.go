@@ -27,7 +27,7 @@ func (r *reporter) Method() string { return r.c.Request.Method }
 
 func (r *reporter) Context() context.Context { return r.c.Request.Context() }
 
-func (r *reporter) URLPath() string { return r.c.Request.URL.Path }
+func (r *reporter) URLPath() string { return r.c.FullPath() }
 
 func (r *reporter) StatusCode() int { return r.c.Writer.Status() }
 
