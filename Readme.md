@@ -47,6 +47,7 @@ The middleware is mainly focused to be compatible with Go std library using http
 - [Goji][goji-example]
 - [Gorilla][gorilla-example]
 - [Httprouter][httprouter-example]
+- [Iris][iris-example]
 - [Negroni][negroni-example]
 
 It supports any framework that supports http.Handler provider type middleware `func(http.Handler) http.Handler` (e.g Chi, Alice, Gorilla...). Use [`std.HandlerProvider`][handler-provider-docs]
@@ -218,6 +219,7 @@ This Option is used to unregister the Recorder views before are being registered
 [custom-example]: examples/custom
 [negroni-example]: examples/negroni
 [httprouter-example]: examples/httprouter
+[iris-example]: examples/iris
 [gorestful-example]: examples/gorestful
 [gin-example]: examples/gin
 [echo-example]: examples/echo
