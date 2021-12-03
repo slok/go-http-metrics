@@ -9,7 +9,7 @@ import (
 	"github.com/slok/go-http-metrics/middleware"
 )
 
-// Handler returns a Gin measuring middleware.
+// Handler returns a Iris measuring middleware.
 func Handler(handlerID string, m middleware.Middleware) iris.Handler {
 	return func(ctx iris.Context) {
 		r := &reporter{ctx: ctx}

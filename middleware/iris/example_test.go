@@ -25,7 +25,7 @@ func Example_irisMiddleware() {
 
 	// Add our handler and middleware
 	h := func(ctx iris.Context) {
-		ctx.WriteString("Hello world")
+		ctx.WriteString("Hello world") // nolint: errcheck
 	}
 	app.Get("/", irismiddleware.Handler("", mdlw), h)
 
