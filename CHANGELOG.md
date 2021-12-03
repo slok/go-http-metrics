@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support Iris library.
+
 ## [0.10.0] - 2021-11-16
 
 ### Added

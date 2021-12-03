@@ -8,8 +8,8 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/kataras/iris/v12 v12.2.0-alpha5
 	github.com/justinas/alice v1.2.0
+	github.com/kataras/iris/v12 v12.2.0-alpha5
 	github.com/labstack/echo/v4 v4.6.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.7.0

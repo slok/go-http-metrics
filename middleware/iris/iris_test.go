@@ -51,7 +51,7 @@ func TestMiddleware(t *testing.T) {
 			handler: func() iris.Handler {
 				return func(ctx iris.Context) {
 					ctx.StatusCode(iris.StatusAccepted)
-					ctx.WriteString("test1")
+					_, _ = ctx.WriteString("test1")
 				}
 			},
 			expRespCode: 202,
@@ -82,7 +82,7 @@ func TestMiddleware(t *testing.T) {
 			handler: func() iris.Handler {
 				return func(ctx iris.Context) {
 					ctx.StatusCode(iris.StatusAccepted)
-					ctx.JSON(map[string]string{"test": "one"})
+					ctx.JSON(map[string]string{"test": "one"}) // nolint: errcheck
 				}
 			},
 			expRespCode: 202,
@@ -109,9 +109,8 @@ func TestMiddleware(t *testing.T) {
 
 			// Make the request.
 			resp := httptest.NewRecorder()
-			if err := app.Build(); err != nil {
-				t.Fatal(err)
-			}
+			err := app.Build()
+			require.NoError(err)
 			app.ServeHTTP(resp, req)
 
 			// Check.
