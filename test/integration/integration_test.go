@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
+	"github.com/kataras/iris/v12"
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -33,6 +34,7 @@ import (
 	gojimiddleware "github.com/slok/go-http-metrics/middleware/goji"
 	gorestfulmiddleware "github.com/slok/go-http-metrics/middleware/gorestful"
 	httproutermiddleware "github.com/slok/go-http-metrics/middleware/httprouter"
+	irismiddleware "github.com/slok/go-http-metrics/middleware/iris"
 	negronimiddleware "github.com/slok/go-http-metrics/middleware/negroni"
 	stdmiddleware "github.com/slok/go-http-metrics/middleware/std"
 )
@@ -82,6 +84,7 @@ func TestMiddlewarePrometheus(t *testing.T) {
 		"Alice":            {server: prepareHandlerAlice},
 		"Gorilla":          {server: prepareHandlerGorilla},
 		"Fasthttp":         {server: prepareHandlerFastHTTP},
+		"Iris":             {server: prepareHandlerIris},
 	}
 
 	for name, test := range tests {
@@ -381,4 +384,24 @@ func prepareHandlerFastHTTP(m middleware.Middleware, hc []handlerConfig) server 
 	}()
 
 	return netListenerServer{ln: ln}
+}
+
+func prepareHandlerIris(m middleware.Middleware, hc []handlerConfig) server {
+	// Setup server and middleware.
+	app := iris.New()
+	app.Use(irismiddleware.Handler("", m))
+
+	// Set handlers.
+	for _, h := range hc {
+		h := h
+		app.Handle(h.Method, h.Path, iris.Handler(func(ctx iris.Context) {
+			time.Sleep(h.SleepDuration)
+			ctx.StatusCode(h.Code)
+			ctx.WriteString(h.ReturnData) // nolint: errcheck
+		}))
+	}
+
+	app.Build() // nolint: errcheck
+
+	return testServer{server: httptest.NewServer(app)}
 }
