@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.4.0
-      - uses: actions/setup-go@v2.1.4
+      - uses: actions/setup-go@v2.1.5
         with:
           go-version: 1.17
       - run: make test
@@ -28,7 +28,7 @@ jobs:
     needs: [check, unit-test]
     steps:
       - uses: actions/checkout@v2.4.0
-      - uses: actions/setup-go@v2.1.4
+      - uses: actions/setup-go@v2.1.5
         with:
           go-version: 1.17
       - run: make integration-test
