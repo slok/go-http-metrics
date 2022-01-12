@@ -3,7 +3,7 @@ module github.com/slok/go-http-metrics
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/emicklei/go-restful/v3 v3.7.2
-	github.com/fasthttp/router v1.4.4
+	github.com/fasthttp/router v1.4.5
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/gorilla/mux v1.8.0
@@ -14,7 +14,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/negroni v1.0.0
-	github.com/valyala/fasthttp v1.31.0
+	github.com/valyala/fasthttp v1.32.0
 	go.opencensus.io v0.23.0
 	goji.io v2.0.2+incompatible
 )
@@ -69,7 +69,7 @@ require (
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/prometheus/statsd_exporter v0.21.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/savsgio/gotils v0.0.0-20210921075833-21a6215cb0e4 // indirect
+	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
 	github.com/schollz/closestmatch v2.1.0+incompatible // indirect
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/tdewolff/minify/v2 v2.9.22 // indirect
