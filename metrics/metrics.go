@@ -16,6 +16,9 @@ type HTTPReqProperties struct {
 	Method string
 	// Code is the response of the request.
 	Code string
+
+	// CustomLabels hold values of the custom labels, if any.
+	CustomLabels []string
 }
 
 // HTTPProperties are the metric properties for the global server metrics.
@@ -24,6 +27,9 @@ type HTTPProperties struct {
 	Service string
 	// ID is the id of the request handler.
 	ID string
+
+	// CustomLabels hold values of the custom labels, if any.
+	CustomLabels []string
 }
 
 // Recorder knows how to record and measure the metrics. This

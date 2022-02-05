@@ -67,6 +67,11 @@ func New(cfg Config) Middleware {
 func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 	ctx := reporter.Context()
 
+	var customLabels []string
+	if cr, ok := reporter.(CustomLabelReporter); ok {
+		customLabels = cr.CustomLabels()
+	}
+
 	// If there isn't predefined handler ID we
 	// set that ID as the URL path.
 	hid := handlerID
@@ -77,9 +82,11 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 	// Measure inflights if required.
 	if !m.cfg.DisableMeasureInflight {
 		props := metrics.HTTPProperties{
-			Service: m.cfg.Service,
-			ID:      hid,
+			Service:      m.cfg.Service,
+			ID:           hid,
+			CustomLabels: customLabels,
 		}
+
 		m.cfg.Recorder.AddInflightRequests(ctx, props, 1)
 		defer m.cfg.Recorder.AddInflightRequests(ctx, props, -1)
 	}
@@ -100,10 +107,11 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 		}
 
 		props := metrics.HTTPReqProperties{
-			Service: m.cfg.Service,
-			ID:      hid,
-			Method:  reporter.Method(),
-			Code:    code,
+			Service:      m.cfg.Service,
+			ID:           hid,
+			Method:       reporter.Method(),
+			Code:         code,
+			CustomLabels: customLabels,
 		}
 		m.cfg.Recorder.ObserveHTTPRequestDuration(ctx, props, duration)
 
@@ -125,4 +133,9 @@ type Reporter interface {
 	URLPath() string
 	StatusCode() int
 	BytesWritten() int64
+}
+
+type CustomLabelReporter interface {
+	Reporter
+	CustomLabels() []string
 }

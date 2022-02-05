@@ -1,2 +1,4 @@
 vendor/
 .test_coverage.txt
+
+.idea/

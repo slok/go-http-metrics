@@ -14,19 +14,23 @@ import (
 )
 
 func TestMiddlewareMeasure(t *testing.T) {
-	tests := map[string]struct {
+	tests := []struct {
+		name      string
 		handlerID string
-		config    func() middleware.Config
-		mock      func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter)
+		config    middleware.Config
+		recorder  func() metrics.Recorder
+		setup     func() (metrics.Recorder, middleware.Reporter, func(t *testing.T))
 	}{
-		"Having default config with service, it should measure the metrics.": {
+		{
+			name:      "Having default config with service, it should measure the metrics.",
 			handlerID: "test01",
-			config: func() middleware.Config {
-				return middleware.Config{
-					Service: "svc1",
-				}
+			config: middleware.Config{
+				Service: "svc1",
 			},
-			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
+			setup: func() (metrics.Recorder, middleware.Reporter, func(t *testing.T)) {
+				mrec := &mockmetrics.Recorder{}
+				mrep := &mockmiddleware.Reporter{}
+
 				// Reporter mocks.
 				mrep.On("Context").Once().Return(context.TODO())
 				mrep.On("StatusCode").Once().Return(418)
@@ -41,15 +45,61 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrec.On("AddInflightRequests", mock.Anything, expProps, -1).Once()
 				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
 				mrec.On("ObserveHTTPResponseSize", mock.Anything, expRepProps, int64(42)).Once()
+
+				return mrec, mrep, func(t *testing.T) {
+					mrec.AssertExpectations(t)
+					mrep.AssertExpectations(t)
+				}
 			},
 		},
-
-		"Without having handler ID, it should measure the metrics using the request path.": {
-			handlerID: "",
-			config: func() middleware.Config {
-				return middleware.Config{}
+		{
+			name:      "Custom labels should work",
+			handlerID: "test01",
+			config: middleware.Config{
+				Service: "svc1",
 			},
-			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
+			setup: func() (metrics.Recorder, middleware.Reporter, func(t *testing.T)) {
+				mrec := &mockmetrics.Recorder{}
+				mrep := &mockmiddleware.CustomLabelReporter{}
+
+				mrep.On("Context").Once().Return(context.TODO())
+				mrep.On("StatusCode").Once().Return(418)
+				mrep.On("Method").Once().Return("PATCH")
+				mrep.On("BytesWritten").Once().Return(int64(42))
+				mrep.On("CustomLabels").Once().Return([]string{"user_VIP"})
+
+				expProps := metrics.HTTPProperties{
+					Service:      "svc1",
+					ID:           "test01",
+					CustomLabels: []string{"user_VIP"},
+				}
+				expRepProps := metrics.HTTPReqProperties{
+					Service:      "svc1",
+					ID:           "test01",
+					Method:       "PATCH",
+					Code:         "418",
+					CustomLabels: []string{"user_VIP"},
+				}
+
+				mrec.On("AddInflightRequests", mock.Anything, expProps, 1).Once()
+				mrec.On("AddInflightRequests", mock.Anything, expProps, -1).Once()
+				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
+				mrec.On("ObserveHTTPResponseSize", mock.Anything, expRepProps, int64(42)).Once()
+
+				return mrec, mrep, func(t *testing.T) {
+					mrec.AssertExpectations(t)
+					mrep.AssertExpectations(t)
+				}
+			},
+		},
+		{
+			name:      "Without having handler ID, it should measure the metrics using the request path.",
+			handlerID: "",
+			config:    middleware.Config{},
+			setup: func() (metrics.Recorder, middleware.Reporter, func(t *testing.T)) {
+				mrec := &mockmetrics.Recorder{}
+				mrep := &mockmiddleware.Reporter{}
+
 				// Reporter mocks.
 				mrep.On("URLPath").Once().Return("/test/01")
 				mrep.On("Context").Once().Return(context.TODO())
@@ -64,17 +114,23 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrec.On("AddInflightRequests", mock.Anything, mock.Anything, mock.Anything).Once()
 				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
 				mrec.On("ObserveHTTPResponseSize", mock.Anything, expRepProps, mock.Anything).Once()
-			},
-		},
 
-		"Having grouped status code, it should measure the metrics using grouped status codes.": {
-			handlerID: "test01",
-			config: func() middleware.Config {
-				return middleware.Config{
-					GroupedStatus: true,
+				return mrec, mrep, func(t *testing.T) {
+					mrec.AssertExpectations(t)
+					mrep.AssertExpectations(t)
 				}
 			},
-			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
+		},
+		{
+			name:      "Having grouped status code, it should measure the metrics using grouped status codes.",
+			handlerID: "test01",
+			config: middleware.Config{
+				GroupedStatus: true,
+			},
+			setup: func() (metrics.Recorder, middleware.Reporter, func(t *testing.T)) {
+				mrec := &mockmetrics.Recorder{}
+				mrep := &mockmiddleware.Reporter{}
+
 				// Reporter mocks.
 				mrep.On("Context").Once().Return(context.TODO())
 				mrep.On("StatusCode").Once().Return(418)
@@ -88,17 +144,23 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrec.On("AddInflightRequests", mock.Anything, mock.Anything, mock.Anything).Once()
 				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
 				mrec.On("ObserveHTTPResponseSize", mock.Anything, expRepProps, mock.Anything).Once()
-			},
-		},
 
-		"Disabling inflight requests measuring, it shouldn't measure inflight metrics.": {
-			handlerID: "test01",
-			config: func() middleware.Config {
-				return middleware.Config{
-					DisableMeasureInflight: true,
+				return mrec, mrep, func(t *testing.T) {
+					mrec.AssertExpectations(t)
+					mrep.AssertExpectations(t)
 				}
 			},
-			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
+		},
+		{
+			name:      "Disabling inflight requests measuring, it shouldn't measure inflight metrics.",
+			handlerID: "test01",
+			config: middleware.Config{
+				DisableMeasureInflight: true,
+			},
+			setup: func() (metrics.Recorder, middleware.Reporter, func(t *testing.T)) {
+				mrec := &mockmetrics.Recorder{}
+				mrep := &mockmiddleware.Reporter{}
+
 				// Reporter mocks.
 				mrep.On("Context").Once().Return(context.TODO())
 				mrep.On("StatusCode").Once().Return(418)
@@ -110,17 +172,23 @@ func TestMiddlewareMeasure(t *testing.T) {
 
 				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
 				mrec.On("ObserveHTTPResponseSize", mock.Anything, expRepProps, mock.Anything).Once()
-			},
-		},
 
-		"Disabling size measuring, it shouldn't measure size metrics.": {
-			handlerID: "test01",
-			config: func() middleware.Config {
-				return middleware.Config{
-					DisableMeasureSize: true,
+				return mrec, mrep, func(t *testing.T) {
+					mrec.AssertExpectations(t)
+					mrep.AssertExpectations(t)
 				}
 			},
-			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
+		},
+		{
+			name:      "Disabling size measuring, it shouldn't measure size metrics.",
+			handlerID: "test01",
+			config: middleware.Config{
+				DisableMeasureSize: true,
+			},
+			setup: func() (metrics.Recorder, middleware.Reporter, func(t *testing.T)) {
+				mrec := &mockmetrics.Recorder{}
+				mrep := &mockmiddleware.Reporter{}
+
 				// Reporter mocks.
 				mrep.On("Context").Once().Return(context.TODO())
 				mrep.On("StatusCode").Once().Return(418)
@@ -132,31 +200,27 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrec.On("AddInflightRequests", mock.Anything, mock.Anything, mock.Anything).Once()
 				mrec.On("AddInflightRequests", mock.Anything, mock.Anything, mock.Anything).Once()
 				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
+
+				return mrec, mrep, func(t *testing.T) {
+					mrec.AssertExpectations(t)
+					mrep.AssertExpectations(t)
+				}
 			},
 		},
 	}
 
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			assert := assert.New(t)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mrec, mrep, cleanup := tc.setup()
 
-			// Mocks.
-			mrec := &mockmetrics.Recorder{}
-			mrep := &mockmiddleware.Reporter{}
-			test.mock(mrec, mrep)
-
-			// Execute.
-			config := test.config()
-			config.Recorder = mrec // Set mocked recorder.
-			mdlw := middleware.New(config)
+			tc.config.Recorder = mrec
+			mdlw := middleware.New(tc.config)
 
 			calledNext := false
-			mdlw.Measure(test.handlerID, mrep, func() { calledNext = true })
+			mdlw.Measure(tc.handlerID, mrep, func() { calledNext = true })
 
-			// Check.
-			mrec.AssertExpectations(t)
-			mrep.AssertExpectations(t)
-			assert.True(calledNext)
+			cleanup(t)
+			assert.True(t, calledNext)
 		})
 	}
 }

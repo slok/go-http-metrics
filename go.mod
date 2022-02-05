@@ -1,5 +1,7 @@
 module github.com/slok/go-http-metrics
 
+go 1.17
+
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/emicklei/go-restful/v3 v3.7.2
@@ -90,5 +92,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
-
-go 1.17
