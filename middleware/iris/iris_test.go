@@ -1,4 +1,4 @@
-package gorestful_test
+package iris_test
 
 import (
 	"io/ioutil"
@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	gorestful "github.com/emicklei/go-restful/v3"
+	"github.com/kataras/iris/v12"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -14,7 +14,7 @@ import (
 	mmetrics "github.com/slok/go-http-metrics/internal/mocks/metrics"
 	"github.com/slok/go-http-metrics/metrics"
 	"github.com/slok/go-http-metrics/middleware"
-	gorestfulmiddleware "github.com/slok/go-http-metrics/middleware/gorestful"
+	irismiddleware "github.com/slok/go-http-metrics/middleware/iris"
 )
 
 func TestMiddleware(t *testing.T) {
@@ -23,7 +23,7 @@ func TestMiddleware(t *testing.T) {
 		config      middleware.Config
 		req         func() *http.Request
 		mock        func(m *mmetrics.Recorder)
-		handler     func() gorestful.RouteFunction
+		handler     func() iris.Handler
 		expRespCode int
 		expRespBody string
 	}{
@@ -48,14 +48,45 @@ func TestMiddleware(t *testing.T) {
 				m.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
 				m.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
 			},
-			handler: func() gorestful.RouteFunction {
-				return gorestful.RouteFunction(func(_ *gorestful.Request, resp *gorestful.Response) {
-					resp.WriteHeader(202)
-					resp.Write([]byte("test1")) // nolint: errcheck
-				})
+			handler: func() iris.Handler {
+				return func(ctx iris.Context) {
+					ctx.StatusCode(iris.StatusAccepted)
+					_, _ = ctx.WriteString("test1")
+				}
 			},
 			expRespCode: 202,
 			expRespBody: "test1",
+		},
+
+		"A default HTTP middleware using JSON should call the recorder to measure (Regression test: https://github.com/slok/go-http-metrics/issues/31).": {
+			req: func() *http.Request {
+				return httptest.NewRequest(http.MethodPost, "/test", nil)
+			},
+			mock: func(m *mmetrics.Recorder) {
+				expHTTPReqProps := metrics.HTTPReqProperties{
+					ID:      "/test",
+					Service: "",
+					Method:  "POST",
+					Code:    "202",
+				}
+				m.On("ObserveHTTPRequestDuration", mock.Anything, expHTTPReqProps, mock.Anything).Once()
+				m.On("ObserveHTTPResponseSize", mock.Anything, expHTTPReqProps, int64(14)).Once()
+
+				expHTTPProps := metrics.HTTPProperties{
+					ID:      "/test",
+					Service: "",
+				}
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
+			},
+			handler: func() iris.Handler {
+				return func(ctx iris.Context) {
+					ctx.StatusCode(iris.StatusAccepted)
+					ctx.JSON(map[string]string{"test": "one"}) // nolint: errcheck
+				}
+			},
+			expRespCode: 202,
+			expRespBody: `{"test":"one"}`,
 		},
 	}
 
@@ -70,17 +101,17 @@ func TestMiddleware(t *testing.T) {
 
 			// Create our instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
-			c := gorestful.NewContainer()
-			c.Filter(gorestfulmiddleware.Handler(test.handlerID, mdlw))
-			ws := &gorestful.WebService{}
-			ws.Produces(gorestful.MIME_JSON)
+			app := iris.New().Configure(iris.WithOptimizations)
 			req := test.req()
-			ws.Route(ws.Method(req.Method).Path(req.URL.Path).To(test.handler()))
-			c.Add(ws)
+			app.Handle(req.Method, req.URL.Path,
+				irismiddleware.Handler(test.handlerID, mdlw),
+				test.handler())
 
 			// Make the request.
 			resp := httptest.NewRecorder()
-			c.ServeHTTP(resp, req)
+			err := app.Build()
+			require.NoError(err)
+			app.ServeHTTP(resp, req)
 
 			// Check.
 			mr.AssertExpectations(t)

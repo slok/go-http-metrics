@@ -7,11 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	gorestful "github.com/emicklei/go-restful/v3"
+	"github.com/kataras/iris/v12"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
-	gorestfulmiddleware "github.com/slok/go-http-metrics/middleware/gorestful"
+	irismiddleware "github.com/slok/go-http-metrics/middleware/iris"
 )
 
 const (
@@ -25,28 +25,35 @@ func main() {
 		Recorder: metrics.NewRecorder(metrics.Config{}),
 	})
 
-	// Create our gorestful instance.
-	c := gorestful.NewContainer()
-
-	// Add the middleware for all routes.
-	c.Filter(gorestfulmiddleware.Handler("", mdlw))
+	// Create Iris engine and global middleware.
+	app := iris.New()
+	app.Use(irismiddleware.Handler("", mdlw))
 
 	// Add our handler.
-	ws := &gorestful.WebService{}
-	ws.Produces(gorestful.MIME_JSON)
+	app.Get("/", func(ctx iris.Context) {
+		ctx.StatusCode(iris.StatusAccepted)
+		_, _ = ctx.WriteString("Hello world!")
+	})
 
-	ws.Route(ws.GET("/").To(func(_ *gorestful.Request, resp *gorestful.Response) {
-		resp.WriteEntity("Hello world")
-	}))
-	ws.Route(ws.GET("/wrong").To(func(_ *gorestful.Request, resp *gorestful.Response) {
-		resp.WriteHeaderAndEntity(http.StatusTooManyRequests, "oops")
-	}))
-	c.Add(ws)
+	app.Get("/json", func(ctx iris.Context) {
+		ctx.JSON(map[string]string{"hello": "world"}) // nolint: errcheck
+	})
+
+	app.Get("/wrong", func(ctx iris.Context) {
+		ctx.StatusCode(iris.StatusTooManyRequests)
+		_, _ = ctx.WriteString("oops")
+
+	})
+
+	err := app.Build()
+	if err != nil {
+		panic(err)
+	}
 
 	// Serve our handler.
 	go func() {
 		log.Printf("server listening at %s", srvAddr)
-		if err := http.ListenAndServe(srvAddr, c); err != nil {
+		if err := http.ListenAndServe(srvAddr, app); err != nil {
 			log.Panicf("error while serving: %s", err)
 		}
 	}()

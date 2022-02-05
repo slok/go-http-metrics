@@ -4,7 +4,7 @@ package gorestful
 import (
 	"context"
 
-	gorestful "github.com/emicklei/go-restful"
+	gorestful "github.com/emicklei/go-restful/v3"
 
 	"github.com/slok/go-http-metrics/middleware"
 )
