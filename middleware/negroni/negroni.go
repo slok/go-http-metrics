@@ -2,6 +2,7 @@
 package negroni
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/urfave/negroni"
@@ -13,6 +14,8 @@ import (
 // Handler returns a Negroni measuring middleware.
 func Handler(handlerID string, m middleware.Middleware) negroni.Handler {
 	return negroni.HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		std.Handler(handlerID, m, next).ServeHTTP(rw, r)
+		ctx := context.WithValue(r.Context(), middleware.HandlerIDCtx, handlerID)
+		req := r.WithContext(ctx)
+		std.Handler(handlerID, m, next).ServeHTTP(rw, req)
 	})
 }
