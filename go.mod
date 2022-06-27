@@ -1,7 +1,7 @@
 module github.com/slok/go-http-metrics
 
 require (
-	contrib.go.opencensus.io/exporter/prometheus v0.4.0
+	contrib.go.opencensus.io/exporter/prometheus v0.4.1
 	github.com/emicklei/go-restful/v3 v3.8.0
 	github.com/fasthttp/router v1.4.6
 	github.com/gin-gonic/gin v1.8.1
