@@ -12,7 +12,7 @@ require (
 	github.com/kataras/iris/v12 v12.2.0-beta3
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/prometheus/client_golang v1.12.2
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.1
 	github.com/urfave/negroni v1.0.0
 	github.com/valyala/fasthttp v1.37.0
 	go.opencensus.io v0.23.0
@@ -74,7 +74,7 @@ require (
 	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
 	github.com/schollz/closestmatch v2.1.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tdewolff/minify/v2 v2.11.7 // indirect
 	github.com/tdewolff/parse/v2 v2.5.32 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
