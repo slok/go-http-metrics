@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	gorestful "github.com/emicklei/go-restful"
+	gorestful "github.com/emicklei/go-restful/v3"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
