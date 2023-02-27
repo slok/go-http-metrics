@@ -86,35 +86,42 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 
 	// Start the timer and when finishing measure the duration.
 	start := time.Now()
-	defer func() {
-		duration := time.Since(start)
-
-		// If we need to group the status code, it uses the
-		// first number of the status code because is the least
-		// required identification way.
-		var code string
-		if m.cfg.GroupedStatus {
-			code = fmt.Sprintf("%dxx", reporter.StatusCode()/100)
-		} else {
-			code = strconv.Itoa(reporter.StatusCode())
-		}
-
-		props := metrics.HTTPReqProperties{
-			Service: m.cfg.Service,
-			ID:      hid,
-			Method:  reporter.Method(),
-			Code:    code,
-		}
-		m.cfg.Recorder.ObserveHTTPRequestDuration(ctx, props, duration)
-
-		// Measure size of response if required.
-		if !m.cfg.DisableMeasureSize {
-			m.cfg.Recorder.ObserveHTTPResponseSize(ctx, props, reporter.BytesWritten())
-		}
-	}()
 
 	// Call the wrapped logic.
 	next()
+
+	duration := time.Since(start)
+
+	// If we need to group the status code, it uses the
+	// first number of the status code because is the least
+	// required identification way.
+	var code string
+	if m.cfg.GroupedStatus {
+		code = fmt.Sprintf("%dxx", reporter.StatusCode()/100)
+	} else {
+		code = strconv.Itoa(reporter.StatusCode())
+	}
+
+	// If there isn't predefined handler ID we
+	// set that ID as the URL path.
+	// call again reporter.URLPath() to get URLPath after next()
+	// -- this is because some framework only can retrieve route pattern after next(), example go chi
+	if handlerID == "" {
+		hid = reporter.URLPath()
+	}
+
+	props := metrics.HTTPReqProperties{
+		Service: m.cfg.Service,
+		ID:      hid,
+		Method:  reporter.Method(),
+		Code:    code,
+	}
+	m.cfg.Recorder.ObserveHTTPRequestDuration(ctx, props, duration)
+
+	// Measure size of response if required.
+	if !m.cfg.DisableMeasureSize {
+		m.cfg.Recorder.ObserveHTTPResponseSize(ctx, props, reporter.BytesWritten())
+	}
 }
 
 // Reporter knows how to report the data to the Middleware so it can measure the

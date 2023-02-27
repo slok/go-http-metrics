@@ -8,11 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
-	"github.com/slok/go-http-metrics/middleware/std"
+	chiMid "github.com/slok/go-http-metrics/middleware/chi"
 )
 
 const (
@@ -28,7 +28,7 @@ func main() {
 
 	// Create our router with the metrics middleware.
 	r := chi.NewRouter()
-	r.Use(std.HandlerProvider("", mdlw))
+	r.Use(chiMid.HandlerProvider("", mdlw))
 
 	// Add paths.
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
