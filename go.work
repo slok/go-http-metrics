@@ -1,0 +1,17 @@
+go 1.19
+
+use (
+	.
+	./examples
+	./metrics/opencensus
+	./metrics/prometheus
+	./middleware/echo
+	./middleware/fasthttp
+	./middleware/gin
+	./middleware/goji
+	./middleware/gorestful
+	./middleware/httprouter
+	./middleware/iris
+	./middleware/negroni
+	./test/integration
+)

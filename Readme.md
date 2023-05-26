@@ -28,21 +28,27 @@ The metrics obtained with this middleware are the [most important ones][red] for
 
 go-http-metrics is easy to extend to different metric backends by implementing `metrics.Recorder` interface.
 
+The following metrics backends are provided:
+
 - [Prometheus][prometheus-recorder]
 - [OpenCensus][opencensus-recorder]
+
+Each provided backend is its own module. To use an individual backend module, `go get` it. Example: `go get github.com/slok/go-http-metrics/metrics/prometheus`. 
 
 ## Framework compatibility middlewares
 
 The middleware is mainly focused to be compatible with Go std library using http.Handler, but it comes with helpers to get middlewares for other frameworks or libraries.
 
-**When `go-http-metrics` is imported as a dependency, it will only import the libraries being used, this is safe because each lib/framework is in its own package. More information [here][import-information-1] and [here][import-information-2]**
+It supports any framework that supports http.Handler provider type middleware `func(http.Handler) http.Handler` (e.g Chi, Alice, Gorilla...). Use [`std.HandlerProvider`][handler-provider-docs]
+
+The following middleware modules are provided:
 
 - [Alice][alice-example]
 - [Chi][chi-example]
 - [Echo][echo-example]
 - [Fasthttp][fasthttp-example]
 - [Gin][gin-example]
-- [Go http.Handler][default-example]
+- [Go http.Handler][default-example] (imported by default)
 - [Go-restful][gorestful-example]
 - [Goji][goji-example]
 - [Gorilla][gorilla-example]
@@ -50,7 +56,7 @@ The middleware is mainly focused to be compatible with Go std library using http
 - [Iris][iris-example]
 - [Negroni][negroni-example]
 
-It supports any framework that supports http.Handler provider type middleware `func(http.Handler) http.Handler` (e.g Chi, Alice, Gorilla...). Use [`std.HandlerProvider`][handler-provider-docs]
+Each middleware is its own module. To use an individual middleware module, `go get` it. Example: `go get github.com/slok/go-http-metrics/middleware/gin`.
 
 ## Getting Started
 
