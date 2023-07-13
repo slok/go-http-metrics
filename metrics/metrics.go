@@ -16,6 +16,9 @@ type HTTPReqProperties struct {
 	Method string
 	// Code is the response of the request.
 	Code string
+	// ExtraProperties holds any extra properties that may be extracted from
+	// the request and use by a recorder.
+	ExtraProperties map[string]interface{}
 }
 
 // HTTPProperties are the metric properties for the global server metrics.
@@ -24,6 +27,9 @@ type HTTPProperties struct {
 	Service string
 	// ID is the id of the request handler.
 	ID string
+	// ExtraProperties holds any extra properties that may be extracted from
+	// the request and use by a recorder.
+	ExtraProperties map[string]interface{}
 }
 
 // Recorder knows how to record and measure the metrics. This

@@ -13,7 +13,7 @@ import (
 func Handler(handlerID string, m middleware.Middleware) gorestful.FilterFunction {
 	return func(req *gorestful.Request, resp *gorestful.Response, chain *gorestful.FilterChain) {
 		r := &reporter{req: req, resp: resp}
-		m.Measure(handlerID, r, func() {
+		m.Measure(handlerID, r, req, func() {
 			chain.ProcessFilter(req, resp)
 		})
 	}

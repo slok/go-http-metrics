@@ -13,7 +13,7 @@ import (
 func Handler(handlerID string, m middleware.Middleware) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r := &reporter{c: c}
-		m.Measure(handlerID, r, func() {
+		m.Measure(handlerID, r, c, func() {
 			c.Next()
 		})
 	}

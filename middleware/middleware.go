@@ -32,11 +32,17 @@ type Config struct {
 	// DisableMeasureInflight will disable the recording metrics about the inflight requests number,
 	// by default measuring inflights is enabled (`DisableMeasureInflight` is false).
 	DisableMeasureInflight bool
+	// PropertyExtractor is used to extract extra properties from a request that may
+	// be used by a recorder.
+	PropertyExtractor func(request interface{}) map[string]interface{}
 }
 
 func (c *Config) defaults() {
 	if c.Recorder == nil {
 		c.Recorder = metrics.Dummy
+	}
+	if c.PropertyExtractor == nil {
+		c.PropertyExtractor = func(request interface{}) map[string]interface{} { return nil }
 	}
 }
 
@@ -64,7 +70,7 @@ func New(cfg Config) Middleware {
 // reporter will return the required data to be measured.
 // it accepts a next function that will be called as the wrapped logic before and after
 // measurement actions.
-func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
+func (m Middleware) Measure(handlerID string, reporter Reporter, request interface{}, next func()) {
 	ctx := reporter.Context()
 
 	// If there isn't predefined handler ID we
@@ -77,8 +83,9 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 	// Measure inflights if required.
 	if !m.cfg.DisableMeasureInflight {
 		props := metrics.HTTPProperties{
-			Service: m.cfg.Service,
-			ID:      hid,
+			Service:         m.cfg.Service,
+			ID:              hid,
+			ExtraProperties: m.cfg.PropertyExtractor(request),
 		}
 		m.cfg.Recorder.AddInflightRequests(ctx, props, 1)
 		defer m.cfg.Recorder.AddInflightRequests(ctx, props, -1)
@@ -100,10 +107,11 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 		}
 
 		props := metrics.HTTPReqProperties{
-			Service: m.cfg.Service,
-			ID:      hid,
-			Method:  reporter.Method(),
-			Code:    code,
+			Service:         m.cfg.Service,
+			ID:              hid,
+			Method:          reporter.Method(),
+			Code:            code,
+			ExtraProperties: m.cfg.PropertyExtractor(request),
 		}
 		m.cfg.Recorder.ObserveHTTPRequestDuration(ctx, props, duration)
 

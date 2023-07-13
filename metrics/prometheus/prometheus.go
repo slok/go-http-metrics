@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -30,6 +31,8 @@ type Config struct {
 	MethodLabel string
 	// ServiceLabel is the name that will be set to the service label, by default is `service`.
 	ServiceLabel string
+	// ExtraLabels is used to add extra labels to the metrics that can be extracted per request.
+	ExtraLabels []string
 }
 
 func (c *Config) defaults() {
@@ -66,12 +69,23 @@ type recorder struct {
 	httpRequestDurHistogram   *prometheus.HistogramVec
 	httpResponseSizeHistogram *prometheus.HistogramVec
 	httpRequestsInflight      *prometheus.GaugeVec
+	cfg                       *Config
 }
 
 // NewRecorder returns a new metrics recorder that implements the recorder
 // using Prometheus as the backend.
 func NewRecorder(cfg Config) metrics.Recorder {
 	cfg.defaults()
+
+	httpRequestDurHistogramLabels := []string{cfg.ServiceLabel, cfg.HandlerIDLabel,
+		cfg.MethodLabel, cfg.StatusCodeLabel}
+	httpResponseSizeHistogramLabels := []string{cfg.ServiceLabel, cfg.HandlerIDLabel,
+		cfg.MethodLabel, cfg.StatusCodeLabel}
+	httpRequestsInflightLabels := []string{cfg.ServiceLabel, cfg.HandlerIDLabel}
+
+	httpRequestDurHistogramLabels = append(httpRequestDurHistogramLabels, cfg.ExtraLabels...)
+	httpResponseSizeHistogramLabels = append(httpResponseSizeHistogramLabels, cfg.ExtraLabels...)
+	httpRequestsInflightLabels = append(httpRequestsInflightLabels, cfg.ExtraLabels...)
 
 	r := &recorder{
 		httpRequestDurHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -80,7 +94,7 @@ func NewRecorder(cfg Config) metrics.Recorder {
 			Name:      "request_duration_seconds",
 			Help:      "The latency of the HTTP requests.",
 			Buckets:   cfg.DurationBuckets,
-		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		}, httpRequestDurHistogramLabels),
 
 		httpResponseSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: cfg.Prefix,
@@ -88,14 +102,16 @@ func NewRecorder(cfg Config) metrics.Recorder {
 			Name:      "response_size_bytes",
 			Help:      "The size of the HTTP responses.",
 			Buckets:   cfg.SizeBuckets,
-		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		}, httpResponseSizeHistogramLabels),
 
 		httpRequestsInflight: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: cfg.Prefix,
 			Subsystem: "http",
 			Name:      "requests_inflight",
 			Help:      "The number of inflight requests being handled at the same time.",
-		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel}),
+		}, httpRequestsInflightLabels),
+
+		cfg: &cfg,
 	}
 
 	cfg.Registry.MustRegister(
@@ -108,13 +124,27 @@ func NewRecorder(cfg Config) metrics.Recorder {
 }
 
 func (r recorder) ObserveHTTPRequestDuration(_ context.Context, p metrics.HTTPReqProperties, duration time.Duration) {
-	r.httpRequestDurHistogram.WithLabelValues(p.Service, p.ID, p.Method, p.Code).Observe(duration.Seconds())
+	labelValues := r.fillLabelValues(p.ExtraProperties, p.Service, p.ID, p.Method, p.Code)
+	r.httpRequestDurHistogram.WithLabelValues(labelValues...).Observe(duration.Seconds())
 }
 
 func (r recorder) ObserveHTTPResponseSize(_ context.Context, p metrics.HTTPReqProperties, sizeBytes int64) {
-	r.httpResponseSizeHistogram.WithLabelValues(p.Service, p.ID, p.Method, p.Code).Observe(float64(sizeBytes))
+	labelValues := r.fillLabelValues(p.ExtraProperties, p.Service, p.ID, p.Method, p.Code)
+	r.httpResponseSizeHistogram.WithLabelValues(labelValues...).Observe(float64(sizeBytes))
 }
 
 func (r recorder) AddInflightRequests(_ context.Context, p metrics.HTTPProperties, quantity int) {
-	r.httpRequestsInflight.WithLabelValues(p.Service, p.ID).Add(float64(quantity))
+	labelValues := r.fillLabelValues(p.ExtraProperties, p.Service, p.ID)
+	r.httpRequestsInflight.WithLabelValues(labelValues...).Add(float64(quantity))
+}
+
+func (r recorder) fillLabelValues(extraProperties map[string]interface{}, labels ...string) []string {
+	for _, extraLabel := range r.cfg.ExtraLabels {
+		prop := extraProperties[extraLabel]
+		if prop == nil {
+			prop = ""
+		}
+		labels = append(labels, fmt.Sprintf("%v", prop))
+	}
+	return labels
 }

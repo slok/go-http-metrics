@@ -23,7 +23,7 @@ func Handler(handlerID string, m middleware.Middleware, h http.Handler) http.Han
 			r: r,
 		}
 
-		m.Measure(handlerID, reporter, func() {
+		m.Measure(handlerID, reporter, r, func() {
 			h.ServeHTTP(wi, r)
 		})
 	})

@@ -151,7 +151,7 @@ func TestMiddlewareMeasure(t *testing.T) {
 			mdlw := middleware.New(config)
 
 			calledNext := false
-			mdlw.Measure(test.handlerID, mrep, func() { calledNext = true })
+			mdlw.Measure(test.handlerID, mrep, nil, func() { calledNext = true })
 
 			// Check.
 			mrec.AssertExpectations(t)
