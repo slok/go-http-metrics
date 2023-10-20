@@ -3,7 +3,7 @@ UNIT_TEST_CMD 			:= go test `go list ./... | grep -v test\/integration` -race -c
 						   	go tool cover -func=.test_coverage.txt | tail -n1 | awk '{print "Total test coverage: " $$3}'
 INTEGRATION_TEST_CMD 	:= go test ./test/integration -race
 BENCHMARK_CMD 			:= go test `go list ./...` -benchmem -bench=.
-CHECK_CMD 				:= golangci-lint run -E goimports
+CHECK_CMD 				:= golangci-lint run
 DEPS_CMD 				:= go mod tidy
 MOCKS_CMD 				:= go generate ./internal/mocks
 
@@ -23,8 +23,8 @@ unit-test: ## Execute unit tests.
 integration-test: ## Execute unit tests.
 	$(INTEGRATION_TEST_CMD)
 
-.PHONY: test ## Alias for unit tests.
-test: unit-test
+.PHONY: test
+test: unit-test ## Alias for unit tests.
 
 .PHONY: benchmark
 benchmark: ## Execute benchmarks.
@@ -45,3 +45,4 @@ mocks: ## Generates mocks.
 .PHONY: docs
 docs: ## Runs docs example on :6060.
 	godoc -http=":6060"
+

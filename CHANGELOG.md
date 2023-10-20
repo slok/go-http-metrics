@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update dependencies to latest versions.
+
 ### Added
 
 - Support Iris library.

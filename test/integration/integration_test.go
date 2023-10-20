@@ -1,7 +1,7 @@
 package integration
 
 import (
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +11,7 @@ import (
 	gorestful "github.com/emicklei/go-restful/v3"
 	fasthttprouter "github.com/fasthttp/router"
 	"github.com/gin-gonic/gin"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v4"
 	"github.com/gorilla/mux"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
@@ -128,7 +128,7 @@ func testMiddlewareRequests(t *testing.T, server server, expReqs []handlerConfig
 
 			// Check.
 			assert.Equal(config.Code, resp.StatusCode)
-			b, err := ioutil.ReadAll(resp.Body)
+			b, err := io.ReadAll(resp.Body)
 			require.NoError(err)
 			assert.Equal(config.ReturnData, string(b))
 		}
@@ -150,7 +150,7 @@ func testMiddlewarePrometheusMetrics(t *testing.T, h http.Handler, expMetrics []
 	require.NoError(err)
 
 	// Check.
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	require.NoError(err)
 	metrics := string(b)
 

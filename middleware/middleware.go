@@ -45,7 +45,7 @@ func (c *Config) defaults() {
 //
 // Depending on the framework/library we want to measure, this can change a lot,
 // to abstract the way how we measure on the different libraries, Middleware will
-// recieve a `Reporter` that knows how to get the data the Middleware service needs
+// receive a `Reporter` that knows how to get the data the Middleware service needs
 // to measure.
 type Middleware struct {
 	cfg Config
