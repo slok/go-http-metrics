@@ -1,7 +1,7 @@
 package gin_test
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -112,7 +112,7 @@ func TestMiddleware(t *testing.T) {
 			// Check.
 			mr.AssertExpectations(t)
 			assert.Equal(test.expRespCode, resp.Result().StatusCode)
-			gotBody, err := ioutil.ReadAll(resp.Result().Body)
+			gotBody, err := io.ReadAll(resp.Result().Body)
 			require.NoError(err)
 			assert.Equal(test.expRespBody, string(gotBody))
 		})

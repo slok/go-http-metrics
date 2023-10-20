@@ -7,19 +7,24 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     # Execute the checks inside the container instead the VM.
-    container: golangci/golangci-lint:v1.31.0-alpine
+    container: golangci/golangci-lint:v1.54.2-alpine
     steps:
-      - uses: actions/checkout@v3.0.2
-      - run: golangci-lint run -E goimports
+      - uses: actions/checkout@v4
+      - run: |
+          # We need this go flag because it started to error after golangci-lint is using Go 1.21.
+          # TODO(slok): Remove it on next (>1.54.2) golangci-lint upgrade to check if this problem has gone.
+          export GOFLAGS="-buildvcs=false"
+          golangci-lint run
 
   unit-test:
     name: Unit test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-go@v3.2.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.17
+          go-version-file: go.mod
+          cache: false
       - run: make test
 
   integration-test:
@@ -27,8 +32,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check, unit-test]
     steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-go@v3.2.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.17
+          go-version-file: go.mod
+          cache: false
       - run: make integration-test

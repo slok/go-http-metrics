@@ -2,6 +2,7 @@
 Package gohttpmetrics knows how to measure http metrics in different metric formats,
 it comes with a middleware that can be used for different frameworks and also the
 the main Go net/http handler:
+
 	package main
 
 	import (
