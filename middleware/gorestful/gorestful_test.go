@@ -19,8 +19,9 @@ import (
 
 func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
-		handlerID   string
-		config      middleware.Config
+		handlerID   string                     // This is the name of the handler.  If empty, the path will be used.
+		route       string                     // This is the route path to use go-restful.
+		config      gorestfulmiddleware.Config // This is the go-restful middleware config.
 		req         func() *http.Request
 		mock        func(m *mmetrics.Recorder)
 		handler     func() gorestful.RouteFunction
@@ -28,6 +29,8 @@ func TestMiddleware(t *testing.T) {
 		expRespBody string
 	}{
 		"A default HTTP middleware should call the recorder to measure.": {
+			route:  "/test",
+			config: gorestfulmiddleware.Config{},
 			req: func() *http.Request {
 				return httptest.NewRequest(http.MethodPost, "/test", nil)
 			},
@@ -57,6 +60,103 @@ func TestMiddleware(t *testing.T) {
 			expRespCode: 202,
 			expRespBody: "test1",
 		},
+		"The handler ID overrides the path.": {
+			handlerID: "my-handler",
+			route:     "/test/{id}",
+			req: func() *http.Request {
+				return httptest.NewRequest(http.MethodPost, "/test/1", nil)
+			},
+			mock: func(m *mmetrics.Recorder) {
+				expHTTPReqProps := metrics.HTTPReqProperties{
+					ID:      "my-handler",
+					Service: "",
+					Method:  "POST",
+					Code:    "202",
+				}
+				m.On("ObserveHTTPRequestDuration", mock.Anything, expHTTPReqProps, mock.Anything).Once()
+				m.On("ObserveHTTPResponseSize", mock.Anything, expHTTPReqProps, int64(5)).Once()
+
+				expHTTPProps := metrics.HTTPProperties{
+					ID:      "my-handler",
+					Service: "",
+				}
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
+			},
+			handler: func() gorestful.RouteFunction {
+				return gorestful.RouteFunction(func(_ *gorestful.Request, resp *gorestful.Response) {
+					resp.WriteHeader(202)
+					resp.Write([]byte("test1")) // nolint: errcheck
+				})
+			},
+			expRespCode: 202,
+			expRespBody: "test1",
+		},
+		"The full path is used by default.": {
+			route: "/test/{id}",
+			req: func() *http.Request {
+				return httptest.NewRequest(http.MethodPost, "/test/1", nil)
+			},
+			mock: func(m *mmetrics.Recorder) {
+				expHTTPReqProps := metrics.HTTPReqProperties{
+					ID:      "/test/1",
+					Service: "",
+					Method:  "POST",
+					Code:    "202",
+				}
+				m.On("ObserveHTTPRequestDuration", mock.Anything, expHTTPReqProps, mock.Anything).Once()
+				m.On("ObserveHTTPResponseSize", mock.Anything, expHTTPReqProps, int64(5)).Once()
+
+				expHTTPProps := metrics.HTTPProperties{
+					ID:      "/test/1",
+					Service: "",
+				}
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
+			},
+			handler: func() gorestful.RouteFunction {
+				return gorestful.RouteFunction(func(_ *gorestful.Request, resp *gorestful.Response) {
+					resp.WriteHeader(202)
+					resp.Write([]byte("test1")) // nolint: errcheck
+				})
+			},
+			expRespCode: 202,
+			expRespBody: "test1",
+		},
+		"The route path is used when desired.": {
+			route: "/test/{id}",
+			config: gorestfulmiddleware.Config{
+				UseRoutePath: true,
+			},
+			req: func() *http.Request {
+				return httptest.NewRequest(http.MethodPost, "/test/1", nil)
+			},
+			mock: func(m *mmetrics.Recorder) {
+				expHTTPReqProps := metrics.HTTPReqProperties{
+					ID:      "/test/{id}",
+					Service: "",
+					Method:  "POST",
+					Code:    "202",
+				}
+				m.On("ObserveHTTPRequestDuration", mock.Anything, expHTTPReqProps, mock.Anything).Once()
+				m.On("ObserveHTTPResponseSize", mock.Anything, expHTTPReqProps, int64(5)).Once()
+
+				expHTTPProps := metrics.HTTPProperties{
+					ID:      "/test/{id}",
+					Service: "",
+				}
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
+			},
+			handler: func() gorestful.RouteFunction {
+				return gorestful.RouteFunction(func(_ *gorestful.Request, resp *gorestful.Response) {
+					resp.WriteHeader(202)
+					resp.Write([]byte("test1")) // nolint: errcheck
+				})
+			},
+			expRespCode: 202,
+			expRespBody: "test1",
+		},
 	}
 
 	for name, test := range tests {
@@ -71,11 +171,11 @@ func TestMiddleware(t *testing.T) {
 			// Create our instance with the middleware.
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			c := gorestful.NewContainer()
-			c.Filter(gorestfulmiddleware.Handler(test.handlerID, mdlw))
+			c.Filter(gorestfulmiddleware.HandlerWithConfig(test.handlerID, mdlw, test.config))
 			ws := &gorestful.WebService{}
 			ws.Produces(gorestful.MIME_JSON)
 			req := test.req()
-			ws.Route(ws.Method(req.Method).Path(req.URL.Path).To(test.handler()))
+			ws.Route(ws.Method(req.Method).Path(test.route).To(test.handler()))
 			c.Add(ws)
 
 			// Make the request.
