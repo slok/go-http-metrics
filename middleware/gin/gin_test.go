@@ -21,6 +21,7 @@ func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
 		handlerID   string
 		config      middleware.Config
+		route       string
 		req         func() *http.Request
 		mock        func(m *mmetrics.Recorder)
 		handler     func() gin.HandlerFunc
@@ -86,6 +87,37 @@ func TestMiddleware(t *testing.T) {
 			expRespCode: 202,
 			expRespBody: `{"test":"one"}`,
 		},
+
+		"A default HTTP middleware should set template route as route label": {
+			route: "/test/:id",
+			req: func() *http.Request {
+				return httptest.NewRequest(http.MethodPost, "/test/12", nil)
+			},
+			mock: func(m *mmetrics.Recorder) {
+				expHTTPReqProps := metrics.HTTPReqProperties{
+					ID:      "/test/:id",
+					Service: "",
+					Method:  "POST",
+					Code:    "202",
+				}
+				m.On("ObserveHTTPRequestDuration", mock.Anything, expHTTPReqProps, mock.Anything).Once()
+				m.On("ObserveHTTPResponseSize", mock.Anything, expHTTPReqProps, int64(14)).Once()
+
+				expHTTPProps := metrics.HTTPProperties{
+					ID:      "/test/:id",
+					Service: "",
+				}
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, 1).Once()
+				m.On("AddInflightRequests", mock.Anything, expHTTPProps, -1).Once()
+			},
+			handler: func() gin.HandlerFunc {
+				return func(c *gin.Context) {
+					c.JSON(202, map[string]string{"test": "one"})
+				}
+			},
+			expRespCode: 202,
+			expRespBody: `{"test":"one"}`,
+		},
 	}
 
 	for name, test := range tests {
@@ -101,7 +133,12 @@ func TestMiddleware(t *testing.T) {
 			mdlw := middleware.New(middleware.Config{Recorder: mr})
 			engine := gin.New()
 			req := test.req()
-			engine.Handle(req.Method, req.URL.Path,
+
+			relativePath := req.URL.Path
+			if test.route != "" {
+				relativePath = test.route
+			}
+			engine.Handle(req.Method, relativePath,
 				ginmiddleware.Handler(test.handlerID, mdlw),
 				test.handler())
 
