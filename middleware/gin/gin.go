@@ -32,3 +32,5 @@ func (r *reporter) URLPath() string { return r.c.Request.URL.Path }
 func (r *reporter) StatusCode() int { return r.c.Writer.Status() }
 
 func (r *reporter) BytesWritten() int64 { return int64(r.c.Writer.Size()) }
+
+func (r *reporter) CustomHeaders() map[string]string { return make(map[string]string) }
