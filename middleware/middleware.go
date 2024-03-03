@@ -32,6 +32,9 @@ type Config struct {
 	// DisableMeasureInflight will disable the recording metrics about the inflight requests number,
 	// by default measuring inflights is enabled (`DisableMeasureInflight` is false).
 	DisableMeasureInflight bool
+	// IgnoredPaths is a list of paths that will not be measured for the request duration
+	// and the response size. They will still be counted in the RequestsInflight metric.
+	IgnoredPaths []string
 }
 
 func (c *Config) defaults() {
@@ -87,6 +90,12 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 	// Start the timer and when finishing measure the duration.
 	start := time.Now()
 	defer func() {
+		for _, path := range m.cfg.IgnoredPaths {
+			if path == reporter.URLPath() {
+				return
+			}
+		}
+
 		duration := time.Since(start)
 
 		// If we need to group the status code, it uses the
