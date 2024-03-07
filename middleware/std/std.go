@@ -87,6 +87,10 @@ func (w *responseWriterInterceptor) Flush() {
 	f.Flush()
 }
 
+func (w *responseWriterInterceptor) Unwrap() http.ResponseWriter {
+	return w.ResponseWriter
+}
+
 // Check interface implementations.
 var (
 	_ http.ResponseWriter = &responseWriterInterceptor{}
