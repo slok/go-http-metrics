@@ -13,6 +13,8 @@ import (
 	"github.com/slok/go-http-metrics/metrics"
 )
 
+const HandlerIDCtx = "HandlerIDCtx"
+
 // Config is the configuration for the middleware factory.
 type Config struct {
 	// Recorder is the way the metrics will be recorder in the different backends.

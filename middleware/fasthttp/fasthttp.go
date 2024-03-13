@@ -11,6 +11,7 @@ import (
 // Handler returns a fasthttp measuring middleware.
 func Handler(handlerID string, m middleware.Middleware, next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(c *fasthttp.RequestCtx) {
+		c.SetUserValue(middleware.HandlerIDCtx, handlerID)
 		m.Measure(handlerID, reporter{c}, func() {
 			next(c)
 		})

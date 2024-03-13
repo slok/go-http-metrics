@@ -14,17 +14,19 @@ import (
 // Handler returns an measuring standard http.Handler.
 func Handler(handlerID string, m middleware.Middleware, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), middleware.HandlerIDCtx, handlerID)
+		req := r.WithContext(ctx)
 		wi := &responseWriterInterceptor{
 			statusCode:     http.StatusOK,
 			ResponseWriter: w,
 		}
 		reporter := &stdReporter{
 			w: wi,
-			r: r,
+			r: req,
 		}
 
 		m.Measure(handlerID, reporter, func() {
-			h.ServeHTTP(wi, r)
+			h.ServeHTTP(wi, req)
 		})
 	})
 }

@@ -12,6 +12,7 @@ import (
 // Handler returns a Gin measuring middleware.
 func Handler(handlerID string, m middleware.Middleware) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		c.Set(middleware.HandlerIDCtx, handlerID)
 		r := &reporter{c: c}
 		m.Measure(handlerID, r, func() {
 			c.Next()

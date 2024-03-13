@@ -12,6 +12,7 @@ import (
 func Handler(handlerID string, m middleware.Middleware) echo.MiddlewareFunc {
 	return func(h echo.HandlerFunc) echo.HandlerFunc {
 		return echo.HandlerFunc(func(c echo.Context) error {
+			c.Set(middleware.HandlerIDCtx, handlerID)
 			r := &reporter{c: c}
 			var err error
 			m.Measure(handlerID, r, func() {
