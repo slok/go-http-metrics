@@ -9,6 +9,28 @@ import (
 	"github.com/slok/go-http-metrics/metrics"
 )
 
+// NativeHistogramConfig provides options for tuning native histogram exposition.
+// These are 1:1 with the setting exposed by the Prometheus client library:
+// https://github.com/prometheus/client_golang/blob/main/prometheus/histogram.go.
+// The minimal requirement is to set BucketFactor > 1 for the native histogram
+// exposition to be available.
+type NativeHistogramConfig struct {
+	BucketFactor     float64
+	ZeroThreshold    float64
+	MaxBucketNumber  uint32
+	MinResetDuration time.Duration
+	MaxZeroThreshold float64
+}
+
+func (n NativeHistogramConfig) mapOntoOpts(opts prometheus.HistogramOpts) prometheus.HistogramOpts {
+	opts.NativeHistogramBucketFactor = n.BucketFactor
+	opts.NativeHistogramZeroThreshold = n.ZeroThreshold
+	opts.NativeHistogramMaxBucketNumber = n.MaxBucketNumber
+	opts.NativeHistogramMaxZeroThreshold = n.MaxZeroThreshold
+	opts.NativeHistogramMinResetDuration = n.MinResetDuration
+	return opts
+}
+
 // Config has the dependencies and values of the recorder.
 type Config struct {
 	// Prefix is the prefix that will be set on the metrics, by default it will be empty.
@@ -16,9 +38,15 @@ type Config struct {
 	// DurationBuckets are the buckets used by Prometheus for the HTTP request duration metrics,
 	// by default uses Prometheus default buckets (from 5ms to 10s).
 	DurationBuckets []float64
+	// DurationNativeHistogramConfig provides configuration for exposing HTTP request duration metrics
+	// as Native Histograms.
+	DurationNativeHistogramConfig NativeHistogramConfig
 	// SizeBuckets are the buckets used by Prometheus for the HTTP response size metrics,
 	// by default uses a exponential buckets from 100B to 1GB.
 	SizeBuckets []float64
+	// SizeNativeHistogramConfig provides configuration for exposing HTTP response size metrics
+	// as Native Histograms.
+	SizeNativeHistogramConfig NativeHistogramConfig
 	// Registry is the registry that will be used by the recorder to store the metrics,
 	// if the default registry is not used then it will use the default one.
 	Registry prometheus.Registerer
@@ -74,21 +102,23 @@ func NewRecorder(cfg Config) metrics.Recorder {
 	cfg.defaults()
 
 	r := &recorder{
-		httpRequestDurHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Namespace: cfg.Prefix,
-			Subsystem: "http",
-			Name:      "request_duration_seconds",
-			Help:      "The latency of the HTTP requests.",
-			Buckets:   cfg.DurationBuckets,
-		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		httpRequestDurHistogram: prometheus.NewHistogramVec(
+			cfg.DurationNativeHistogramConfig.mapOntoOpts(prometheus.HistogramOpts{
+				Namespace: cfg.Prefix,
+				Subsystem: "http",
+				Name:      "request_duration_seconds",
+				Help:      "The latency of the HTTP requests.",
+				Buckets:   cfg.DurationBuckets,
+			}), []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
 
-		httpResponseSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Namespace: cfg.Prefix,
-			Subsystem: "http",
-			Name:      "response_size_bytes",
-			Help:      "The size of the HTTP responses.",
-			Buckets:   cfg.SizeBuckets,
-		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		httpResponseSizeHistogram: prometheus.NewHistogramVec(
+			cfg.SizeNativeHistogramConfig.mapOntoOpts(prometheus.HistogramOpts{
+				Namespace: cfg.Prefix,
+				Subsystem: "http",
+				Name:      "response_size_bytes",
+				Help:      "The size of the HTTP responses.",
+				Buckets:   cfg.SizeBuckets,
+			}), []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
 
 		httpRequestsInflight: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: cfg.Prefix,
