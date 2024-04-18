@@ -8,19 +8,19 @@ require (
 	github.com/fasthttp/router v1.4.22
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v4 v4.1.3
+	github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/mux v1.8.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/justinas/alice v1.2.0
 	github.com/kataras/iris/v12 v12.2.7
 	github.com/labstack/echo/v4 v4.11.2
 	github.com/prometheus/client_golang v1.19.0
-	github.com/prometheus/prometheus v0.51.2
+	github.com/prometheus/client_model v0.6.0
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/negroni v1.0.0
 	github.com/valyala/fasthttp v1.51.0
 	go.opencensus.io v0.24.0
 	goji.io v2.0.2+incompatible
-	google.golang.org/protobuf v1.33.0
 )
 
 require (
@@ -46,7 +46,6 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.15.5 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20230922112808-5421fefb8386 // indirect
@@ -73,7 +72,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_model v0.6.0 // indirect
 	github.com/prometheus/common v0.49.1-0.20240306132007-4199f18c3e92 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/prometheus/statsd_exporter v0.24.0 // indirect
@@ -98,6 +96,7 @@ require (
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

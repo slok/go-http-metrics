@@ -1,8 +1,9 @@
 package prometheus_test
 
 import (
+	"bytes"
 	"context"
-	"encoding/binary"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	dto "github.com/prometheus/prometheus/prompb/io/prometheus/client"
+	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/encoding/protodelim"
 
 	"github.com/slok/go-http-metrics/metrics"
 	libprometheus "github.com/slok/go-http-metrics/metrics/prometheus"
@@ -33,29 +34,19 @@ func respHasTextMetrics(expMetrics []string) func(t *testing.T, resp *http.Respo
 }
 
 // mustParseDTOs extracts the dto.MetricFamily protos from the body.
-// N.B. that we do this by hand because dto.MetricFamily is compiled with gogoprotbuf.
-// This roughly mirrors how the textparse package in Prometheus works when it scrapes
-// protobuf-exposed metrics.
 func mustParseDTOs(t *testing.T, resp *http.Response) []dto.MetricFamily {
 	var protos []dto.MetricFamily
 	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
+	reader := bytes.NewReader(b)
+
 	for {
-		if len(b) == 0 {
+		var next dto.MetricFamily
+		err := protodelim.UnmarshalFrom(reader, &next)
+		if errors.Is(err, io.EOF) {
 			break
 		}
-		var next dto.MetricFamily
-		messageLength, varIntLength := proto.DecodeVarint(b)
-		if varIntLength == 0 || varIntLength > binary.MaxVarintLen32 {
-			require.Fail(t, "invalid varIntLength %v", varIntLength)
-		}
-		totalLength := varIntLength + int(messageLength)
-		if totalLength > len(b) {
-			require.Fail(t, " insufficient length of buffer, expected at least %d bytes, got %d bytes", totalLength, len(b))
-		}
-		require.NoError(t, next.Unmarshal(b[varIntLength:totalLength]))
 		protos = append(protos, next)
-		b = b[totalLength:]
 	}
 	return protos
 }
@@ -257,10 +248,10 @@ func TestPrometheusRecorder(t *testing.T) {
 				dtos := mustParseDTOs(t, resp)
 				histogramNames := make([]string, 0, 2)
 				for _, d := range dtos {
-					if d.Type != dto.MetricType_HISTOGRAM {
+					if d.GetType() != dto.MetricType_HISTOGRAM {
 						continue
 					}
-					isNativeHistogram := slices.ContainsFunc(d.Metric, func(metric dto.Metric) bool {
+					isNativeHistogram := slices.ContainsFunc(d.GetMetric(), func(metric *dto.Metric) bool {
 						h := metric.Histogram
 						if h == nil {
 							return false
@@ -273,7 +264,7 @@ func TestPrometheusRecorder(t *testing.T) {
 					if !isNativeHistogram {
 						continue
 					}
-					histogramNames = append(histogramNames, d.Name)
+					histogramNames = append(histogramNames, d.GetName())
 				}
 
 				assert.Contains(t, histogramNames, "http_request_duration_seconds")
