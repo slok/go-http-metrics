@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `Gin` middleware now records the path using the regex from `FullPath()` instead of the real URL, avoiding cardinality explosion.
+
+
 ## [0.11.0] - 2023-10-20
 
 ### Changed
