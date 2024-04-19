@@ -32,6 +32,7 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrep.On("StatusCode").Once().Return(418)
 				mrep.On("Method").Once().Return("PATCH")
 				mrep.On("BytesWritten").Once().Return(int64(42))
+				mrep.On("URLPath").Once().Return("/test/01")
 
 				// Recorder mocks.
 				expProps := metrics.HTTPProperties{Service: "svc1", ID: "test01"}
@@ -41,6 +42,35 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrec.On("AddInflightRequests", mock.Anything, expProps, -1).Once()
 				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
 				mrec.On("ObserveHTTPResponseSize", mock.Anything, expRepProps, int64(42)).Once()
+			},
+		},
+
+		"Having an ignored path in the config, it should not measure the metrics for the ignored path.": {
+			handlerID: "test01",
+			config: func() middleware.Config {
+				return middleware.Config{
+					Service: "svc1",
+					IgnoredPaths: map[string]struct{}{
+						"/ignored": {},
+					},
+				}
+			},
+			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
+				// Reporter mocks.
+				mrep.On("Context").Once().Return(context.TODO())
+				mrep.AssertNotCalled(t, "StatusCode")
+				mrep.AssertNotCalled(t, "Method")
+				mrep.AssertNotCalled(t, "BytesWritten")
+				mrep.On("URLPath").Once().Return("/ignored")
+
+				// Recorder mocks.
+				expProps := metrics.HTTPProperties{Service: "svc1", ID: "test01"}
+				expRepProps := metrics.HTTPReqProperties{Service: "svc1", ID: "test01", Method: "PATCH", Code: "418"}
+
+				mrec.On("AddInflightRequests", mock.Anything, expProps, 1).Once()
+				mrec.On("AddInflightRequests", mock.Anything, expProps, -1).Once()
+				mrec.AssertNotCalled(t, "ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything)
+				mrec.AssertNotCalled(t, "ObserveHTTPResponseSize", mock.Anything, expRepProps, int64(42))
 			},
 		},
 
@@ -56,6 +86,7 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrep.On("StatusCode").Once().Return(418)
 				mrep.On("Method").Once().Return("PATCH")
 				mrep.On("BytesWritten").Once().Return(int64(42))
+				mrep.On("URLPath").Once().Return("/test/01")
 
 				// Recorder mocks.
 				expRepProps := metrics.HTTPReqProperties{ID: "/test/01", Method: "PATCH", Code: "418"}
@@ -80,6 +111,7 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrep.On("StatusCode").Once().Return(418)
 				mrep.On("Method").Once().Return("PATCH")
 				mrep.On("BytesWritten").Once().Return(int64(42))
+				mrep.On("URLPath").Once().Return("/test/01")
 
 				// Recorder mocks.
 				expRepProps := metrics.HTTPReqProperties{ID: "test01", Method: "PATCH", Code: "4xx"}
@@ -104,6 +136,7 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrep.On("StatusCode").Once().Return(418)
 				mrep.On("Method").Once().Return("PATCH")
 				mrep.On("BytesWritten").Once().Return(int64(42))
+				mrep.On("URLPath").Once().Return("/test/01")
 
 				// Recorder mocks.
 				expRepProps := metrics.HTTPReqProperties{ID: "test01", Method: "PATCH", Code: "418"}
@@ -125,6 +158,7 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrep.On("Context").Once().Return(context.TODO())
 				mrep.On("StatusCode").Once().Return(418)
 				mrep.On("Method").Once().Return("PATCH")
+				mrep.On("URLPath").Once().Return("/test/01")
 
 				// Recorder mocks.
 				expRepProps := metrics.HTTPReqProperties{ID: "test01", Method: "PATCH", Code: "418"}

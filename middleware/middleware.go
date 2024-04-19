@@ -34,7 +34,7 @@ type Config struct {
 	DisableMeasureInflight bool
 	// IgnoredPaths is a list of paths that will not be measured for the request duration
 	// and the response size. They will still be counted in the RequestsInflight metric.
-	IgnoredPaths []string
+	IgnoredPaths map[string]struct{}
 }
 
 func (c *Config) defaults() {
@@ -90,10 +90,8 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 	// Start the timer and when finishing measure the duration.
 	start := time.Now()
 	defer func() {
-		for _, path := range m.cfg.IgnoredPaths {
-			if path == reporter.URLPath() {
-				return
-			}
+		if _, isPathIgnored := m.cfg.IgnoredPaths[reporter.URLPath()]; isPathIgnored {
+			return
 		}
 
 		duration := time.Since(start)
