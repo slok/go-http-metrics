@@ -11,7 +11,7 @@ import (
 	gorestful "github.com/emicklei/go-restful/v3"
 	fasthttprouter "github.com/fasthttp/router"
 	"github.com/gin-gonic/gin"
-	"github.com/go-chi/chi/v4"
+	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/mux"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
