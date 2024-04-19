@@ -2,10 +2,13 @@
 
 ## [Unreleased]
 
+## [0.12.0] - 2024-04-19
+
 ### Changed
 
 - `Gin` middleware now records the path using the regex from `FullPath()` instead of the real URL, avoiding cardinality explosion.
-
+- Dependency updates.
+- Use Go 1.22.
 
 ## [0.11.0] - 2023-10-20
 
@@ -126,7 +129,8 @@ Breaking change: The library has been refactored to be more flexible when adding
 - HTTP latency requests.
 - Prometheus recorder.
 
-[unreleased]: https://github.com/slok/go-http-metrics/compare/v0.11.0...HEAD
+[unreleased]: https://github.com/slok/go-http-metrics/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/slok/go-http-metrics/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/slok/go-http-metrics/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/slok/go-http-metrics/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/slok/go-http-metrics/compare/v0.8.0...v0.9.0
