@@ -24,7 +24,7 @@ func Example_gorestfulMiddleware() {
 	c := gorestful.NewContainer()
 
 	// Add the middleware for all routes.
-	c.Filter(gorestfulmiddleware.Handler("", mdlw))
+	c.Filter(gorestfulmiddleware.HandlerWithConfig("", mdlw, gorestfulmiddleware.Config{}))
 
 	// Add our handler,
 	ws := &gorestful.WebService{}
