@@ -99,6 +99,12 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 			code = strconv.Itoa(reporter.StatusCode())
 		}
 
+		// If reporter was unable to provide a handler ID *before* calling the underlying
+		// handler, give it a chance to report it *after* the call.
+		if hid == "" {
+			hid = reporter.URLPath()
+		}
+
 		props := metrics.HTTPReqProperties{
 			Service: m.cfg.Service,
 			ID:      hid,

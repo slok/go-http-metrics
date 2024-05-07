@@ -134,6 +134,30 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
 			},
 		},
+
+		"If a handler ID isn't available before calling the handler, it should be retried after.": {
+			handlerID: "",
+			config: func() middleware.Config {
+				return middleware.Config{}
+			},
+			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
+				// Reporter mocks.
+				mrep.On("URLPath").Once().Return("")         // Return no path on first call.
+				mrep.On("URLPath").Once().Return("/test/01") // Only on the second.
+				mrep.On("Context").Once().Return(context.TODO())
+				mrep.On("StatusCode").Once().Return(418)
+				mrep.On("Method").Once().Return("PATCH")
+				mrep.On("BytesWritten").Once().Return(int64(42))
+
+				// Recorder mocks.
+				expRepProps := metrics.HTTPReqProperties{ID: "/test/01", Method: "PATCH", Code: "418"}
+
+				mrec.On("AddInflightRequests", mock.Anything, mock.Anything, mock.Anything).Once()
+				mrec.On("AddInflightRequests", mock.Anything, mock.Anything, mock.Anything).Once()
+				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
+				mrec.On("ObserveHTTPResponseSize", mock.Anything, expRepProps, mock.Anything).Once()
+			},
+		},
 	}
 
 	for name, test := range tests {
