@@ -16,7 +16,7 @@ require (
 	github.com/prometheus/client_golang v1.19.0
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/negroni v1.0.0
-	github.com/valyala/fasthttp v1.52.0
+	github.com/valyala/fasthttp v1.53.0
 	go.opencensus.io v0.24.0
 	goji.io v2.0.2+incompatible
 )
