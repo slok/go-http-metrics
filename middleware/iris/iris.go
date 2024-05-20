@@ -12,6 +12,9 @@ import (
 // Handler returns a Iris measuring middleware.
 func Handler(handlerID string, m middleware.Middleware) iris.Handler {
 	return func(ctx iris.Context) {
+		c := context.WithValue(ctx.Request().Context(), middleware.HandlerIDCtx, handlerID)
+		req := ctx.Request().WithContext(c)
+		ctx.ResetRequest(req)
 		r := &reporter{ctx: ctx}
 		m.Measure(handlerID, r, func() {
 			ctx.Next()
