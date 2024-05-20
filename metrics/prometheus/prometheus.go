@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -30,6 +31,8 @@ type Config struct {
 	MethodLabel string
 	// ServiceLabel is the name that will be set to the service label, by default is `service`.
 	ServiceLabel string
+	// CustomizedLabels is the labels from the header
+	CustomizedLabels []string
 }
 
 func (c *Config) defaults() {
@@ -73,6 +76,13 @@ type recorder struct {
 func NewRecorder(cfg Config) metrics.Recorder {
 	cfg.defaults()
 
+	customLabels := []string{}
+	if cfg.CustomizedLabels != nil && len(cfg.CustomizedLabels) > 0 {
+		customLabels = cfg.CustomizedLabels
+		sort.Strings(customLabels)
+	}
+
+	labels := append([]string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}, customLabels...)
 	r := &recorder{
 		httpRequestDurHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: cfg.Prefix,
@@ -80,7 +90,7 @@ func NewRecorder(cfg Config) metrics.Recorder {
 			Name:      "request_duration_seconds",
 			Help:      "The latency of the HTTP requests.",
 			Buckets:   cfg.DurationBuckets,
-		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		}, labels),
 
 		httpResponseSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: cfg.Prefix,
@@ -88,7 +98,7 @@ func NewRecorder(cfg Config) metrics.Recorder {
 			Name:      "response_size_bytes",
 			Help:      "The size of the HTTP responses.",
 			Buckets:   cfg.SizeBuckets,
-		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+		}, labels),
 
 		httpRequestsInflight: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: cfg.Prefix,
@@ -107,12 +117,27 @@ func NewRecorder(cfg Config) metrics.Recorder {
 	return r
 }
 
+func (r recorder) getLabelValues(p metrics.HTTPReqProperties) []string {
+	keys := []string{}
+	for key, _ := range p.Labels {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	labels := []string{p.Service, p.ID, p.Method, p.Code}
+	for _, key := range keys {
+		labels = append(labels, p.Labels[key])
+	}
+	return labels
+}
+
 func (r recorder) ObserveHTTPRequestDuration(_ context.Context, p metrics.HTTPReqProperties, duration time.Duration) {
-	r.httpRequestDurHistogram.WithLabelValues(p.Service, p.ID, p.Method, p.Code).Observe(duration.Seconds())
+	labels := r.getLabelValues(p)
+	r.httpRequestDurHistogram.WithLabelValues(labels...).Observe(duration.Seconds())
 }
 
 func (r recorder) ObserveHTTPResponseSize(_ context.Context, p metrics.HTTPReqProperties, sizeBytes int64) {
-	r.httpResponseSizeHistogram.WithLabelValues(p.Service, p.ID, p.Method, p.Code).Observe(float64(sizeBytes))
+	labels := r.getLabelValues(p)
+	r.httpResponseSizeHistogram.WithLabelValues(labels...).Observe(float64(sizeBytes))
 }
 
 func (r recorder) AddInflightRequests(_ context.Context, p metrics.HTTPProperties, quantity int) {

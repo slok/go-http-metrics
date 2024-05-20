@@ -52,6 +52,8 @@ func (s *stdReporter) StatusCode() int { return s.w.statusCode }
 
 func (s *stdReporter) BytesWritten() int64 { return int64(s.w.bytesWritten) }
 
+func (s *stdReporter) CustomHeaders() map[string]string { return make(map[string]string) }
+
 // responseWriterInterceptor is a simple wrapper to intercept set data on a
 // ResponseWriter.
 type responseWriterInterceptor struct {
