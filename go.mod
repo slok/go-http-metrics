@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
-	github.com/emicklei/go-restful/v3 v3.12.0
+	github.com/emicklei/go-restful/v3 v3.12.1
 	github.com/fasthttp/router v1.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.0.12
