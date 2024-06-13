@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
-	"github.com/slok/go-http-metrics/middleware/std"
+	muxmiddleware "github.com/slok/go-http-metrics/middleware/std"
 )
 
 const (
@@ -28,7 +28,7 @@ func main() {
 
 	// Create our router with the metrics middleware.
 	r := mux.NewRouter()
-	r.Use(std.HandlerProvider("", mdlw))
+	r.Use(muxmiddleware.HandlerProvider("", mdlw))
 
 	// Add paths.
 	r.Methods("GET").Path("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
