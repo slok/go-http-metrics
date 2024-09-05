@@ -7,7 +7,7 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     # Execute the checks inside the container instead the VM.
-    container: golangci/golangci-lint:v1.57.2-alpine
+    container: golangci/golangci-lint:v1.60.3-alpine
     steps:
       - uses: actions/checkout@v4
       - run: |
