@@ -49,10 +49,8 @@ func TestMiddlewareMeasure(t *testing.T) {
 			handlerID: "test01",
 			config: func() middleware.Config {
 				return middleware.Config{
-					Service: "svc1",
-					IgnoredPaths: map[string]struct{}{
-						"/ignored": {},
-					},
+					Service:      "svc1",
+					IgnoredPaths: []string{"/ignored"},
 				}
 			},
 			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
