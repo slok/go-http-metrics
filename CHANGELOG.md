@@ -2,10 +2,16 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2024-09-05
+
 ### Added
 
 - Added `IgnoredPaths` option to ignore measuring specific exact paths.
 
+### Changed
+
+- Dependency updates.
+- Use Go 1.23.
 
 ## [0.12.0] - 2024-04-19
 
@@ -134,7 +140,8 @@ Breaking change: The library has been refactored to be more flexible when adding
 - HTTP latency requests.
 - Prometheus recorder.
 
-[unreleased]: https://github.com/slok/go-http-metrics/compare/v0.12.0...HEAD
+[unreleased]: https://github.com/slok/go-http-metrics/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/slok/go-http-metrics/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/slok/go-http-metrics/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/slok/go-http-metrics/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/slok/go-http-metrics/compare/v0.9.0...v0.10.0
