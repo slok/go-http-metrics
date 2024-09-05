@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added `IgnoredPaths` option to ignore measuring specific exact paths.
+
+
 ## [0.12.0] - 2024-04-19
 
 ### Changed
