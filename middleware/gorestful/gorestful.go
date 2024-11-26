@@ -12,6 +12,7 @@ import (
 // Handler returns a gorestful measuring middleware.
 func Handler(handlerID string, m middleware.Middleware) gorestful.FilterFunction {
 	return func(req *gorestful.Request, resp *gorestful.Response, chain *gorestful.FilterChain) {
+		req.SetAttribute(middleware.HandlerIDCtx, handlerID)
 		r := &reporter{req: req, resp: resp}
 		m.Measure(handlerID, r, func() {
 			chain.ProcessFilter(req, resp)
