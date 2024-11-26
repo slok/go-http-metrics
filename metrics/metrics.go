@@ -16,6 +16,8 @@ type HTTPReqProperties struct {
 	Method string
 	// Code is the response of the request.
 	Code string
+	// CustomizedLabels is the customized header
+	Labels map[string]string
 }
 
 // HTTPProperties are the metric properties for the global server metrics.

@@ -40,3 +40,5 @@ func (r reporter) StatusCode() int {
 func (r reporter) BytesWritten() int64 {
 	return int64(len(r.c.Response.Body()))
 }
+
+func (r reporter) CustomHeaders() map[string]string { return make(map[string]string) }
