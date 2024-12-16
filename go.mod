@@ -14,7 +14,7 @@ require (
 	github.com/kataras/iris/v12 v12.2.11
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/prometheus/client_golang v1.20.5
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/urfave/negroni v1.0.0
 	github.com/valyala/fasthttp v1.57.0
 	go.opencensus.io v0.24.0
