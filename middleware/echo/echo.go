@@ -15,7 +15,10 @@ func Handler(handlerID string, m middleware.Middleware) echo.MiddlewareFunc {
 			r := &reporter{c: c}
 			var err error
 			m.Measure(handlerID, r, func() {
-				err = h(c)
+				if err = h(c); err != nil {
+					c.Error(err)
+				}
+				
 			})
 			return err
 		})
