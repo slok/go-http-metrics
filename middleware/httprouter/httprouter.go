@@ -2,6 +2,7 @@
 package httprouter
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -15,7 +16,9 @@ func Handler(handlerID string, next httprouter.Handle, m middleware.Middleware) 
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		// Dummy handler to wrap httprouter Handle type.
 		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			next(w, r, p)
+			ctx := context.WithValue(r.Context(), middleware.HandlerIDCtx, handlerID)
+			req := r.WithContext(ctx)
+			next(w, req, p)
 		})
 
 		std.Handler(handlerID, m, h).ServeHTTP(w, r)
