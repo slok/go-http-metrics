@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
-	github.com/emicklei/go-restful/v3 v3.12.1
+	github.com/emicklei/go-restful/v3 v3.12.2
 	github.com/fasthttp/router v1.5.4
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-chi/chi/v5 v5.2.0
