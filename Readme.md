@@ -159,6 +159,9 @@ This settings will disable measuring the number of requests being handled concur
 
 This setting is a list of paths that will not be measured for the request duration and the response size. They will still be counted in the RequestsInflight metric.
 
+#### IgnoredPathRegexps
+This setting is a list of regular expression path patterns that will not be measured for the request duration and the response size. They will still be counted in the RequestsInflight metric.
+
 #### Custom handler ID
 
 One of the options that you need to pass when wrapping the handler with the middleware is `handlerID`, this has 2 working ways.

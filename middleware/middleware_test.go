@@ -166,6 +166,33 @@ func TestMiddlewareMeasure(t *testing.T) {
 				mrec.On("ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything).Once()
 			},
 		},
+
+		"Having an ignored path regexp in the config, it should not measure the metrics for the ignored path.": {
+			handlerID: "test01",
+			config: func() middleware.Config {
+				return middleware.Config{
+					Service:            "svc1",
+					IgnoredPathRegexps: []string{"/ignored/*"},
+				}
+			},
+			mock: func(mrec *mockmetrics.Recorder, mrep *mockmiddleware.Reporter) {
+				// Reporter mocks.
+				mrep.On("Context").Once().Return(context.TODO())
+				mrep.AssertNotCalled(t, "StatusCode")
+				mrep.AssertNotCalled(t, "Method")
+				mrep.AssertNotCalled(t, "BytesWritten")
+				mrep.On("URLPath").Once().Return("/ignored/path")
+
+				// Recorder mocks.
+				expProps := metrics.HTTPProperties{Service: "svc1", ID: "test01"}
+				expRepProps := metrics.HTTPReqProperties{Service: "svc1", ID: "test01", Method: "PATCH", Code: "418"}
+
+				mrec.On("AddInflightRequests", mock.Anything, expProps, 1).Once()
+				mrec.On("AddInflightRequests", mock.Anything, expProps, -1).Once()
+				mrec.AssertNotCalled(t, "ObserveHTTPRequestDuration", mock.Anything, expRepProps, mock.Anything)
+				mrec.AssertNotCalled(t, "ObserveHTTPResponseSize", mock.Anything, expRepProps, int64(42))
+			},
+		},
 	}
 
 	for name, test := range tests {
