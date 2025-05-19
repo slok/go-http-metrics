@@ -7,6 +7,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -35,6 +36,10 @@ type Config struct {
 	// IgnoredPaths is a list of paths that will not be measured for the request duration
 	// and the response size. They will still be counted in the RequestsInflight metric.
 	IgnoredPaths []string
+	// IgnoredPathRegexps is a list of regular expression path patterns that will not be
+	// measured for the request duration and the response size. They will still be counted
+	// in the RequestsInflight metric.
+	IgnoredPathRegexps []string
 }
 
 func (c *Config) defaults() {
@@ -57,6 +62,7 @@ type Middleware struct {
 	disableMeasureSize     bool
 	disableMeasureInflight bool
 	ignoredPaths           map[string]struct{}
+	ignoredPathRegexps     []*regexp.Regexp
 }
 
 // New returns the a Middleware service.
@@ -68,6 +74,11 @@ func New(cfg Config) Middleware {
 		ignPaths[path] = struct{}{}
 	}
 
+	ignPathRegexps := make([]*regexp.Regexp, len(cfg.IgnoredPathRegexps))
+	for i, pathRegexp := range cfg.IgnoredPathRegexps {
+		ignPathRegexps[i] = regexp.MustCompile(pathRegexp)
+	}
+
 	m := Middleware{
 		recorder:               cfg.Recorder,
 		service:                cfg.Service,
@@ -75,6 +86,7 @@ func New(cfg Config) Middleware {
 		disableMeasureSize:     cfg.DisableMeasureSize,
 		disableMeasureInflight: cfg.DisableMeasureInflight,
 		ignoredPaths:           ignPaths,
+		ignoredPathRegexps:     ignPathRegexps,
 	}
 
 	return m
@@ -107,9 +119,16 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 	// Start the timer and when finishing measure the duration.
 	start := time.Now()
 	defer func() {
-		_, shouldIgnore := m.ignoredPaths[reporter.URLPath()]
-		if shouldIgnore {
+		path := reporter.URLPath()
+
+		if _, shouldIgnore := m.ignoredPaths[path]; shouldIgnore {
 			return
+		}
+
+		for _, ignorePathRegexp := range m.ignoredPathRegexps {
+			if ignorePathRegexp.MatchString(path) {
+				return
+			}
 		}
 
 		duration := time.Since(start)
