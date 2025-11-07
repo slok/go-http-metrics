@@ -21,6 +21,18 @@ type reporter struct {
 	c *fasthttp.RequestCtx
 }
 
+func (r reporter) URI() []byte {
+	uri := r.c.Request.URI()
+	if uri != nil {
+		return uri.FullURI()
+	} // end if
+	return nil
+} // end URI()
+
+func (r reporter) BytesReceived() int64 {
+	return int64(len(r.c.Request.Body()))
+} // end BytesReceived()
+
 func (r reporter) Method() string {
 	return string(r.c.Method())
 }

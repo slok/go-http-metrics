@@ -16,6 +16,10 @@ type Recorder struct {
 	mock.Mock
 }
 
+func (_m *Recorder) ObserveHTTPRequestSize(ctx context.Context, props metrics.HTTPReqProperties, sizeBytes int64) {
+	_m.Called(ctx, props, sizeBytes)
+} // end ObserveHTTPRequestSize()
+
 // AddInflightRequests provides a mock function with given fields: ctx, props, quantity
 func (_m *Recorder) AddInflightRequests(ctx context.Context, props metrics.HTTPProperties, quantity int) {
 	_m.Called(ctx, props, quantity)

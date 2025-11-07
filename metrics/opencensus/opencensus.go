@@ -74,9 +74,10 @@ type recorder struct {
 	serviceKey tag.Key
 
 	// Measures.
-	latencySecs   *stats.Float64Measure
-	sizeBytes     *stats.Int64Measure
-	inflightCount *stats.Int64Measure
+	latencySecs       *stats.Float64Measure
+	requestSizeBytes  *stats.Int64Measure
+	responseSizeBytes *stats.Int64Measure
+	inflightCount     *stats.Int64Measure
 }
 
 // NewRecorder returns a new Recorder that uses OpenCensus stats
@@ -133,7 +134,8 @@ func (r *recorder) createMeasurements() {
 		"http_request_duration_seconds",
 		"The latency of the HTTP requests",
 		"s")
-	r.sizeBytes = stats.Int64(
+	r.requestSizeBytes = stats.Int64("http_request_size_bytes", "The size of the HTTP requests", stats.UnitBytes)
+	r.responseSizeBytes = stats.Int64(
 		"http_response_size_bytes",
 		"The size of the HTTP responses",
 		stats.UnitBytes)
@@ -153,11 +155,18 @@ func (r recorder) registerViews(cfg Config) error {
 		Measure:     r.latencySecs,
 		Aggregation: view.Distribution(cfg.DurationBuckets...),
 	}
-	sizeView := &view.View{
+	reqSizeView := &view.View{
+		Name:        r.requestSizeBytes.Name(),
+		Description: r.requestSizeBytes.Description(),
+		TagKeys:     []tag.Key{r.serviceKey, r.handlerKey, r.methodKey, r.codeKey},
+		Measure:     r.requestSizeBytes,
+		Aggregation: view.Distribution(cfg.SizeBuckets...),
+	}
+	repSizeView := &view.View{
 		Name:        "http_response_size_bytes",
 		Description: "The size of the HTTP responses",
 		TagKeys:     []tag.Key{r.serviceKey, r.handlerKey, r.methodKey, r.codeKey},
-		Measure:     r.sizeBytes,
+		Measure:     r.responseSizeBytes,
 		Aggregation: view.Distribution(cfg.SizeBuckets...),
 	}
 	inflightView := &view.View{
@@ -170,16 +179,21 @@ func (r recorder) registerViews(cfg Config) error {
 
 	// Do we need to unregister the same views before registering.
 	if cfg.UnregisterViewsBeforeRegister {
-		view.Unregister(durationView, sizeView, inflightView)
+		view.Unregister(durationView, reqSizeView, repSizeView, inflightView)
 	}
 
-	err := view.Register(durationView, sizeView, inflightView)
+	err := view.Register(durationView, reqSizeView, repSizeView, inflightView)
 	if err != nil {
 		return err
 	}
 
 	return nil
 }
+
+func (r recorder) ObserveHTTPRequestSize(ctx context.Context, p metrics.HTTPReqProperties, sizeBytes int64) {
+	ctx = r.ctxWithTagFromHTTPReqProperties(ctx, p)
+	stats.Record(ctx, r.requestSizeBytes.M(sizeBytes))
+} // end ObserveHTTPRequestSize()
 
 func (r recorder) ObserveHTTPRequestDuration(ctx context.Context, p metrics.HTTPReqProperties, duration time.Duration) {
 	ctx = r.ctxWithTagFromHTTPReqProperties(ctx, p)
@@ -188,7 +202,7 @@ func (r recorder) ObserveHTTPRequestDuration(ctx context.Context, p metrics.HTTP
 
 func (r recorder) ObserveHTTPResponseSize(ctx context.Context, p metrics.HTTPReqProperties, sizeBytes int64) {
 	ctx = r.ctxWithTagFromHTTPReqProperties(ctx, p)
-	stats.Record(ctx, r.sizeBytes.M(sizeBytes))
+	stats.Record(ctx, r.responseSizeBytes.M(sizeBytes))
 }
 
 func (r recorder) AddInflightRequests(ctx context.Context, p metrics.HTTPProperties, quantity int) {

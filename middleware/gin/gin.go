@@ -23,6 +23,16 @@ type reporter struct {
 	c *gin.Context
 }
 
+func (r *reporter) URI() []byte {
+	if r.c.Request.URL != nil {
+		b, _ := r.c.Request.URL.MarshalBinary()
+		return b
+	} // end if
+	return nil
+} // end URI()
+
+func (r *reporter) BytesReceived() int64 { return r.c.Request.ContentLength } // end BytesReceived()
+
 func (r *reporter) Method() string { return r.c.Request.Method }
 
 func (r *reporter) Context() context.Context { return r.c.Request.Context() }

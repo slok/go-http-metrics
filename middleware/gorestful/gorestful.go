@@ -24,6 +24,16 @@ type reporter struct {
 	resp *gorestful.Response
 }
 
+func (r *reporter) URI() []byte {
+	if r.req.Request.URL != nil {
+		b, _ := r.req.Request.URL.MarshalBinary()
+		return b
+	} // end if
+	return nil
+} // end URI()
+
+func (r *reporter) BytesReceived() int64 { return r.req.Request.ContentLength } // end BytesReceived()
+
 func (r *reporter) Method() string { return r.req.Request.Method }
 
 func (r *reporter) Context() context.Context { return r.req.Request.Context() }

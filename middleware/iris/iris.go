@@ -23,6 +23,17 @@ type reporter struct {
 	ctx iris.Context
 }
 
+func (r *reporter) URI() []byte {
+	u := r.ctx.Request().URL
+	if u != nil {
+		b, _ := u.MarshalBinary()
+		return b
+	} // end if
+	return nil
+} // end URI()
+
+func (r *reporter) BytesReceived() int64 { return r.ctx.Request().ContentLength } // end BytesReceived()
+
 func (r *reporter) Method() string { return r.ctx.Method() }
 
 func (r *reporter) Context() context.Context { return r.ctx.Request().Context() }

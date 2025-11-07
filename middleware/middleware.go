@@ -106,6 +106,12 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 
 	// Start the timer and when finishing measure the duration.
 	start := time.Now()
+	props := metrics.HTTPReqProperties{
+		URI:     reporter.URI(),
+		Service: m.service,
+		ID:      hid,
+		Method:  reporter.Method(),
+	}
 	defer func() {
 		_, shouldIgnore := m.ignoredPaths[reporter.URLPath()]
 		if shouldIgnore {
@@ -123,13 +129,7 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 		} else {
 			code = strconv.Itoa(reporter.StatusCode())
 		}
-
-		props := metrics.HTTPReqProperties{
-			Service: m.service,
-			ID:      hid,
-			Method:  reporter.Method(),
-			Code:    code,
-		}
+		props.Code = code
 		m.recorder.ObserveHTTPRequestDuration(ctx, props, duration)
 
 		// Measure size of response if required.
@@ -137,6 +137,7 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 			m.recorder.ObserveHTTPResponseSize(ctx, props, reporter.BytesWritten())
 		}
 	}()
+	m.recorder.ObserveHTTPRequestSize(ctx, props, reporter.BytesReceived())
 
 	// Call the wrapped logic.
 	next()
@@ -145,9 +146,11 @@ func (m Middleware) Measure(handlerID string, reporter Reporter, next func()) {
 // Reporter knows how to report the data to the Middleware so it can measure the
 // different framework/libraries.
 type Reporter interface {
+	URI() []byte
 	Method() string
 	Context() context.Context
 	URLPath() string
 	StatusCode() int
+	BytesReceived() int64
 	BytesWritten() int64
 }

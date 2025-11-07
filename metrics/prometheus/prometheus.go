@@ -64,6 +64,7 @@ func (c *Config) defaults() {
 
 type recorder struct {
 	httpRequestDurHistogram   *prometheus.HistogramVec
+	httpRequestSizeHistogram  *prometheus.HistogramVec
 	httpResponseSizeHistogram *prometheus.HistogramVec
 	httpRequestsInflight      *prometheus.GaugeVec
 }
@@ -80,6 +81,14 @@ func NewRecorder(cfg Config) metrics.Recorder {
 			Name:      "request_duration_seconds",
 			Help:      "The latency of the HTTP requests.",
 			Buckets:   cfg.DurationBuckets,
+		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
+
+		httpRequestSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Namespace: cfg.Prefix,
+			Subsystem: "http",
+			Name:      "request_size_bytes",
+			Help:      "The size of the HTTP requests.",
+			Buckets:   cfg.SizeBuckets,
 		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
 
 		httpResponseSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -99,6 +108,7 @@ func NewRecorder(cfg Config) metrics.Recorder {
 	}
 
 	cfg.Registry.MustRegister(
+		r.httpRequestSizeHistogram,
 		r.httpRequestDurHistogram,
 		r.httpResponseSizeHistogram,
 		r.httpRequestsInflight,
@@ -106,6 +116,10 @@ func NewRecorder(cfg Config) metrics.Recorder {
 
 	return r
 }
+
+func (r recorder) ObserveHTTPRequestSize(_ context.Context, p metrics.HTTPReqProperties, sizeBytes int64) {
+	r.httpRequestSizeHistogram.WithLabelValues(p.Service, p.ID, p.Method, p.Code).Observe(float64(sizeBytes))
+} // end ObserveHTTPRequestSize()
 
 func (r recorder) ObserveHTTPRequestDuration(_ context.Context, p metrics.HTTPReqProperties, duration time.Duration) {
 	r.httpRequestDurHistogram.WithLabelValues(p.Service, p.ID, p.Method, p.Code).Observe(duration.Seconds())

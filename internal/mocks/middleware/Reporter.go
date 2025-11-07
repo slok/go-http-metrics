@@ -13,6 +13,28 @@ type Reporter struct {
 	mock.Mock
 }
 
+func (_m *Reporter) URI() []byte {
+	ret := _m.Called()
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func() []byte); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).([]byte)
+	} // end if
+	return r0
+} // end URI()
+
+func (_m *Reporter) BytesReceived() int64 {
+	ret := _m.Called()
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	} // end if
+	return r0
+} // end BytesReceived()
+
 // BytesWritten provides a mock function with given fields:
 func (_m *Reporter) BytesWritten() int64 {
 	ret := _m.Called()

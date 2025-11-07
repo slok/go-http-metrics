@@ -42,6 +42,16 @@ type stdReporter struct {
 	r *http.Request
 }
 
+func (s *stdReporter) URI() []byte {
+	if s.r.URL != nil {
+		b, _ := s.r.URL.MarshalBinary()
+		return b
+	} // end if
+	return nil
+} // end URI()
+
+func (s *stdReporter) BytesReceived() int64 { return s.r.ContentLength } // end BytesReceived()
+
 func (s *stdReporter) Method() string { return s.r.Method }
 
 func (s *stdReporter) Context() context.Context { return s.r.Context() }

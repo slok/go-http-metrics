@@ -8,6 +8,7 @@ import (
 // HTTPReqProperties are the metric properties for the metrics based
 // on client request.
 type HTTPReqProperties struct {
+	URI []byte
 	// Service is the service that has served the request.
 	Service string
 	// ID is the id of the request handler.
@@ -30,6 +31,7 @@ type HTTPProperties struct {
 // Interface has the required methods to be used with the HTTP
 // middlewares.
 type Recorder interface {
+	ObserveHTTPRequestSize(ctx context.Context, props HTTPReqProperties, sizeBytes int64)
 	// ObserveHTTPRequestDuration measures the duration of an HTTP request.
 	ObserveHTTPRequestDuration(ctx context.Context, props HTTPReqProperties, duration time.Duration)
 	// ObserveHTTPResponseSize measures the size of an HTTP response in bytes.
@@ -44,6 +46,7 @@ const Dummy = dummy(0)
 
 type dummy int
 
+func (dummy) ObserveHTTPRequestSize(context.Context, HTTPReqProperties, int64)                   {} // end ObserveHTTPRequestSize()
 func (dummy) ObserveHTTPRequestDuration(_ context.Context, _ HTTPReqProperties, _ time.Duration) {}
 func (dummy) ObserveHTTPResponseSize(_ context.Context, _ HTTPReqProperties, _ int64)            {}
 func (dummy) AddInflightRequests(_ context.Context, _ HTTPProperties, _ int)                     {}
