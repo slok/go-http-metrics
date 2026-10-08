@@ -66,8 +66,9 @@ func (w *responseWriterInterceptor) WriteHeader(statusCode int) {
 }
 
 func (w *responseWriterInterceptor) Write(p []byte) (int, error) {
-	w.bytesWritten += len(p)
-	return w.ResponseWriter.Write(p)
+	n, err := w.ResponseWriter.Write(p)
+	w.bytesWritten += n
+	return n, err
 }
 
 func (w *responseWriterInterceptor) Hijack() (net.Conn, *bufio.ReadWriter, error) {
